@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-asset
+server:
+  port: 48105

@@ -1,0 +1,119 @@
+version: '7.0'
+services:
+- service: alop-tenant
+  domainSpecs:
+  - tenant
+  owns: Tenant, TenantRoute, TenantPackage
+  database: alop_tenant
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-iam
+  domainSpecs:
+  - iam-organization
+  owns: User membership, Role, Permission
+  database: alop_iam
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-organization
+  domainSpecs:
+  - iam-organization
+  owns: OrganizationUnit, ManagementTeam
+  database: alop_organization
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-asset
+  domainSpecs:
+  - asset
+  - reservation
+  - utility-property-parking
+  owns: Asset, ResourceUnit, Reservation, UtilityMeter
+  database: alop_asset
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-crm
+  domainSpecs:
+  - crm
+  owns: Lead, Customer, Opportunity, Quotation
+  database: alop_crm
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-workflow
+  domainSpecs:
+  - platform-integration
+  owns: WorkflowBusinessRelation
+  database: alop_workflow
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-agreement
+  domainSpecs:
+  - agreement
+  owns: Agreement, AgreementChange, ResourceTransfer
+  database: alop_agreement
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-billing
+  domainSpecs:
+  - billing
+  - utility-property-parking
+  owns: BillingPlan, Bill, UtilityUsagePeriod
+  database: alop_billing
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-tax
+  domainSpecs:
+  - tax
+  owns: TaxRule
+  database: alop_tax
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-payment
+  domainSpecs:
+  - payment
+  owns: PaymentOrder, RefundOrder
+  database: alop_payment
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-finance
+  domainSpecs:
+  - finance
+  owns: Receivable, Collection, SecurityDepositAccount, ReconciliationBatch
+  database: alop_finance
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-invoice
+  domainSpecs:
+  - invoice
+  owns: InvoiceApplication, Invoice, RedFlushApplication
+  database: alop_invoice
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-ap
+  domainSpecs:
+  - ap
+  owns: Supplier, Payable, PaymentRequest
+  database: alop_ap
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-owner-settlement
+  domainSpecs:
+  - owner-settlement
+  owns: OwnerSettlementBatch, PropertyOwner
+  database: alop_owner_settlement
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-notification
+  domainSpecs:
+  - notification
+  owns: NotificationMessage, NotificationDelivery
+  database: alop_notification
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-operations
+  domainSpecs:
+  - operations
+  owns: OperationWorkOrder, HandoverOrder projection/integration
+  database: alop_operations
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-search
+  domainSpecs:
+  - platform-integration
+  owns: Search read models
+  database: none/ES
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-file
+  domainSpecs:
+  - platform-integration
+  owns: FileMetadata
+  database: alop_file
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-gateway
+  domainSpecs:
+  - platform-integration
+  owns: Gateway policy only
+  database: none
+  crossDatabaseWrite: FORBIDDEN

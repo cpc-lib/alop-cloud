@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-tax
+server:
+  port: 48110

@@ -1,0 +1,2 @@
+export const TOKEN_KEY = 'ALOP_ACCESS_TOKEN'
+export const MEMBERSHIP_KEY = 'ALOP_MEMBERSHIP'

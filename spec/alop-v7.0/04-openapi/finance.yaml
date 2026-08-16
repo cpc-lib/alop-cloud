@@ -1,0 +1,567 @@
+openapi: 3.0.3
+info:
+  title: ALOP Finance API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/receivables:
+    get:
+      summary: List receivables
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: getReceivables
+      x-alop-tenant-scoped: true
+  /api/admin/v1/collections/{collectionId}/allocations:
+    post:
+      summary: Allocate collection
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - in: path
+        name: collectionId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AllocationRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postCollectionsCollectionIdAllocations
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/allocations/{allocationId}/reverse:
+    post:
+      summary: Reverse allocation
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - in: path
+        name: allocationId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postAllocationsAllocationIdReverse
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /internal/v1/payment-targets/quote:
+    post:
+      summary: Authoritative payable quote for Payment Service
+      description: Internal service-authenticated API. Never trusts client amount.
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuotePaymentTargetsRequest'
+      responses:
+        '200':
+          description: payable targets
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/PaymentTargetQuote'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postPaymentTargetsQuote
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /internal/v1/refund-reservations/reserve:
+    post:
+      summary: Reserve financially refundable amount before provider refund
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReserveRefundAmountRequest'
+      responses:
+        '200':
+          description: reserved
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponse'
+                - type: object
+                  properties:
+                    data:
+                      $ref: '#/components/schemas/RefundReservationView'
+        '409':
+          description: refundable amount insufficient
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '500':
+          description: Unexpected system error
+      operationId: postRefundReservationsReserve
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /internal/v1/refund-reservations/{reservationNo}/confirm:
+    post:
+      summary: Confirm refund reservation after verified provider refund success
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - in: path
+        name: reservationNo
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmRefundReservationRequest'
+      responses:
+        '200':
+          description: confirmed idempotently
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postRefundReservationsReservationNoConfirm
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /internal/v1/refund-reservations/{reservationNo}/release:
+    post:
+      summary: Release refund reservation after definitive failure/cancel
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      - in: path
+        name: reservationNo
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: released idempotently
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postRefundReservationsReservationNoRelease
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /internal/v1/allocations/{allocationId}/invoice-eligibility:
+    get:
+      summary: Invoice eligibility
+      parameters:
+      - in: path
+        name: allocationId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: getAllocationsAllocationIdInvoiceEligibility
+      x-alop-tenant-scoped: true
+  /internal/v1/invoice-quota/reserve:
+    post:
+      summary: Reserve invoice quota
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReserveInvoiceQuotaRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postInvoiceQuotaReserve
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/reconciliation/batches:
+    post:
+      summary: Run reconciliation
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunReconciliationRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postReconciliationBatches
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+components:
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    AllocationRequest:
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+            - receivableId
+            - amount
+            properties:
+              receivableId:
+                type: integer
+                format: int64
+              amount:
+                type: string
+                pattern: ^\\d+(\\.\\d{1,2})?$
+    ReasonRequest:
+      type: object
+      required:
+      - reason
+      properties:
+        reasonCode:
+          type: string
+          maxLength: 64
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 512
+    PaymentTargetRef:
+      type: object
+      required:
+      - businessType
+      - businessId
+      properties:
+        businessType:
+          type: string
+          enum:
+          - RECEIVABLE
+          - RESERVATION_DEPOSIT
+          - SECURITY_DEPOSIT
+        businessId:
+          type: integer
+          format: int64
+        requestedAmount:
+          type: string
+          nullable: true
+    QuotePaymentTargetsRequest:
+      type: object
+      required:
+      - customerId
+      - targets
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        targets:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/PaymentTargetRef'
+    PaymentTargetQuote:
+      type: object
+      required:
+      - customerId
+      - currency
+      - totalAmount
+      - targets
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        currency:
+          type: string
+          example: CNY
+        totalAmount:
+          type: string
+        quoteVersion:
+          type: string
+        targets:
+          type: array
+          items:
+            type: object
+            required:
+            - businessType
+            - businessId
+            - businessNo
+            - chargeType
+            - allowedPayAmount
+            properties:
+              businessType:
+                type: string
+              businessId:
+                type: integer
+                format: int64
+              businessNo:
+                type: string
+              chargeType:
+                type: string
+              outstandingAmount:
+                type: string
+              allowedPayAmount:
+                type: string
+    ReserveRefundAmountRequest:
+      type: object
+      required:
+      - refundRequestId
+      - paymentOrderId
+      - originalPaymentTransactionId
+      - customerId
+      - requestedAmount
+      - currency
+      properties:
+        refundRequestId:
+          type: string
+          minLength: 8
+          maxLength: 128
+        paymentOrderId:
+          type: integer
+          format: int64
+        originalPaymentTransactionId:
+          type: integer
+          format: int64
+        customerId:
+          type: integer
+          format: int64
+        requestedAmount:
+          type: string
+        currency:
+          type: string
+        allocationIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+    RefundReservationView:
+      type: object
+      required:
+      - reservationNo
+      - reservedAmount
+      - currency
+      - status
+      - targets
+      properties:
+        reservationNo:
+          type: string
+        reservedAmount:
+          type: string
+        currency:
+          type: string
+        status:
+          type: string
+          enum:
+          - RESERVED
+          - CONFIRMED
+          - RELEASED
+          - EXPIRED
+        targets:
+          type: array
+          items:
+            type: object
+            properties:
+              targetType:
+                type: string
+                enum:
+                - ALLOCATION
+                - CUSTOMER_ADVANCE
+              targetId:
+                type: integer
+                format: int64
+              reservedAmount:
+                type: string
+    ConfirmRefundReservationRequest:
+      type: object
+      required:
+      - refundNo
+      - refundTransactionId
+      - providerRefundNo
+      - amount
+      properties:
+        refundNo:
+          type: string
+        refundTransactionId:
+          type: integer
+          format: int64
+        providerRefundNo:
+          type: string
+        amount:
+          type: string
+    ReserveInvoiceQuotaRequest:
+      type: object
+      required:
+      - invoiceApplicationId
+      - allocationId
+      - amount
+      properties:
+        invoiceApplicationId:
+          type: integer
+          format: int64
+        allocationId:
+          type: integer
+          format: int64
+        amount:
+          type: string
+    RunReconciliationRequest:
+      type: object
+      required:
+      - channel
+      - statementDate
+      properties:
+        channel:
+          type: string
+          enum:
+          - WECHAT
+          - ALIPAY
+          - UNIONPAY
+        statementDate:
+          type: string
+          format: date

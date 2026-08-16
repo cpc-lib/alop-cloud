@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/xsd/maven-4.0.0.xsd https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.company.alop</groupId>
+    <artifactId>alop-cloud</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <artifactId>alop-framework</artifactId>
+  <packaging>pom</packaging>
+  <modules>
+    <module>alop-common</module>
+    <module>alop-spring-boot-starter-web</module>
+    <module>alop-spring-boot-starter-security</module>
+    <module>alop-spring-boot-starter-tenant</module>
+    <module>alop-spring-boot-starter-datascope</module>
+    <module>alop-spring-boot-starter-mybatis</module>
+    <module>alop-spring-boot-starter-redis</module>
+    <module>alop-spring-boot-starter-lock</module>
+    <module>alop-spring-boot-starter-mq</module>
+    <module>alop-spring-boot-starter-idempotency</module>
+    <module>alop-spring-boot-starter-outbox</module>
+    <module>alop-spring-boot-starter-inbox</module>
+    <module>alop-spring-boot-starter-audit</module>
+    <module>alop-spring-boot-starter-job</module>
+    <module>alop-spring-boot-starter-observability</module>
+    <module>alop-spring-boot-starter-file-client</module>
+    <module>alop-spring-boot-starter-integration</module>
+    <module>alop-test-support</module>
+  </modules>
+</project>

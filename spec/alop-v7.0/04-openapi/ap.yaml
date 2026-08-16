@@ -1,0 +1,133 @@
+openapi: 3.0.3
+info:
+  title: ALOP Accounts Payable API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/suppliers:
+    get:
+      operationId: listSuppliers
+      x-alop-tenant-scoped: true
+      responses: &id001
+        '200':
+          description: success
+        '400':
+          description: validation/domain error
+        '403':
+          description: forbidden
+        '409':
+          description: conflict
+        '500':
+          description: system error
+    post:
+      operationId: createSupplier
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSupplierRequest'
+      responses: *id001
+  /api/admin/v1/payables:
+    get:
+      operationId: listPayables
+      x-alop-tenant-scoped: true
+      parameters:
+      - name: supplierId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: status
+        in: query
+        schema:
+          type: string
+      responses: *id001
+  /api/admin/v1/payment-requests:
+    post:
+      operationId: createAPPaymentRequest
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+      responses: *id001
+components:
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    CreateSupplierRequest:
+      type: object
+      required:
+      - supplierName
+      - supplierType
+      properties:
+        supplierName:
+          type: string
+        supplierType:
+          type: string
+        taxNo:
+          type: string
+        bankName:
+          type: string
+        bankAccountToken:
+          type: string
+          description: Reference/token, never raw account secret when tokenization
+            is enabled
+    CreatePaymentRequest:
+      type: object
+      required:
+      - currency
+      - items
+      properties:
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+            - payableId
+            - amount
+            properties:
+              payableId:
+                type: integer
+                format: int64
+              amount:
+                type: number
+        reason:
+          type: string

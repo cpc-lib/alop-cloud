@@ -1,0 +1,8 @@
+{
+  "deposit": "20000.00",
+  "rentArrears": "3000.00",
+  "utilityArrears": "1000.00",
+  "damage": "2000.00",
+  "expectedDeduction": "6000.00",
+  "expectedRefund": "14000.00"
+}

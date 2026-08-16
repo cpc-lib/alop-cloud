@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Utility Meter Reading Corrected",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateId",
+    "tenantId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "eventType": {
+      "const": "asset.utility-meter.reading-corrected.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "aggregateType": {
+      "type": "string"
+    },
+    "aggregateId": {
+      "type": "string"
+    },
+    "aggregateVersion": {
+      "type": "integer"
+    },
+    "tenantId": {
+      "type": "string"
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "correlationId": {
+      "type": "string"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "meterId": {
+          "type": "integer"
+        },
+        "oldReadingId": {
+          "type": "integer"
+        },
+        "newReadingId": {
+          "type": "integer"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "wasBilled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "meterId",
+        "oldReadingId",
+        "newReadingId",
+        "reason",
+        "wasBilled"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

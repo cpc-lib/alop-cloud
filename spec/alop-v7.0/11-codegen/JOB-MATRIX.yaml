@@ -1,0 +1,92 @@
+version: '7.0'
+jobs:
+- job: ReservationExpireJob
+  owner: alop-asset
+  selection: HELD expire_at < now
+  partition: tenant batch + keyset id; XXL shard
+  idempotency: CAS HELD->EXPIRED
+- job: ListingExpireJob
+  owner: alop-asset
+  selection: ONLINE valid_until < now
+  partition: tenant batch + keyset
+  idempotency: version/state guard
+- job: QuotationExpireJob
+  owner: alop-crm
+  selection: SENT valid_until < now
+  partition: tenant batch + keyset
+  idempotency: state guard
+- job: CrmTaskOverdueJob
+  owner: alop-crm
+  selection: OPEN due_at < now
+  partition: tenant batch
+  idempotency: idempotent status transition
+- job: AgreementEffectiveJob
+  owner: alop-agreement
+  selection: SIGNED start_time <= now
+  partition: tenant batch + keyset
+  idempotency: state guard
+- job: AgreementReminderJob
+  owner: alop-agreement
+  selection: configured T-N trigger
+  partition: tenant timezone/business calendar
+  idempotency: triggerKey dedup
+- job: AgreementExpireJob
+  owner: alop-agreement
+  selection: EFFECTIVE/EXPIRING end_time <= now
+  partition: tenant batch + keyset
+  idempotency: state guard
+- job: BillingPlanMaterializeJob
+  owner: alop-billing
+  selection: materialization window
+  partition: tenant batch + keyset
+  idempotency: plan unique key
+- job: BillIssueJob
+  owner: alop-billing
+  selection: planned item due for issue
+  partition: tenant batch + keyset
+  idempotency: bill unique period key
+- job: ReceivableOverdueJob
+  owner: alop-finance
+  selection: outstanding>0 due_date<today
+  partition: tenant batch + keyset
+  idempotency: state guard
+- job: PaymentUnknownQueryJob
+  owner: alop-payment
+  selection: attempt UNKNOWN
+  partition: age/order + tenant merchant
+  idempotency: provider query request id
+- job: RefundUnknownQueryJob
+  owner: alop-payment
+  selection: refund UNKNOWN
+  partition: age/order
+  idempotency: provider query request id
+- job: InvoiceUnknownQueryJob
+  owner: alop-invoice
+  selection: invoice UNKNOWN
+  partition: age/order
+  idempotency: query-before-retry
+- job: ChannelStatementDownloadJob
+  owner: alop-finance
+  selection: T-1 per tenant/channel merchant
+  partition: tenant+channel shard
+  idempotency: statement business unique
+- job: ReconciliationJob
+  owner: alop-finance
+  selection: statement ready
+  partition: tenant/channel/date
+  idempotency: batch unique
+- job: NotificationRetryJob
+  owner: alop-notification
+  selection: retryable failed delivery
+  partition: next_retry_at keyset
+  idempotency: delivery attempt unique
+- job: OutboxRetryJob
+  owner: each service
+  selection: PENDING/FAILED due
+  partition: claim token/SKIP LOCKED
+  idempotency: eventId
+- job: IntegrationRetryJob
+  owner: platform integration
+  selection: retryable task due
+  partition: tenant+type keyset
+  idempotency: task execution id

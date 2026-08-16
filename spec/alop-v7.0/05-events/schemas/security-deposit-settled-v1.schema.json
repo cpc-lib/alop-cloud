@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "finance.security-deposit.settled.v1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "tenantId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "eventType": {
+      "const": "finance.security-deposit.settled.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "tenantId": {
+      "type": "integer"
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "depositAccountId",
+        "agreementId",
+        "refundedAmount",
+        "deductedAmount"
+      ],
+      "properties": {
+        "depositAccountId": {
+          "type": "integer"
+        },
+        "agreementId": {
+          "type": "integer"
+        },
+        "refundedAmount": {
+          "type": "number"
+        },
+        "deductedAmount": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

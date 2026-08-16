@@ -1,0 +1,11 @@
+{
+  "fromResource": 801,
+  "toResource": 802,
+  "effectiveAt": "2027-06-01T00:00:00+08:00",
+  "expected": [
+    "target held before source release",
+    "old occupancy ends",
+    "new occupancy starts",
+    "billing V2"
+  ]
+}

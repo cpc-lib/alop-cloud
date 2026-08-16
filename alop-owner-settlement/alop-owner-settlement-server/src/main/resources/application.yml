@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-owner-settlement
+server:
+  port: 48115

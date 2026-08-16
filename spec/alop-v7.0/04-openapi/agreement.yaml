@@ -1,0 +1,261 @@
+openapi: 3.0.3
+info:
+  title: ALOP Agreement API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/agreements:
+    post:
+      summary: Create agreement
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgreementRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postAgreements
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/agreements/{agreementId}/submit:
+    post:
+      summary: Submit agreement
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      parameters:
+      - in: path
+        name: agreementId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      operationId: postAgreementsAgreementIdSubmit
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/agreements/{agreementId}/sign:
+    post:
+      summary: Sign agreement
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      - in: path
+        name: agreementId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignAgreementRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postAgreementsAgreementIdSign
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/agreements/{agreementId}/terminate:
+    post:
+      summary: Request termination
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      - in: path
+        name: agreementId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerminateAgreementRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postAgreementsAgreementIdTerminate
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/agreements/{agreementId}/close:
+    post:
+      summary: Close agreement
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      - in: path
+        name: agreementId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postAgreementsAgreementIdClose
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    CreateAgreementRequest:
+      type: object
+      required:
+      - reservationId
+      - quotationVersionId
+      - agreementType
+      properties:
+        reservationId:
+          type: integer
+          format: int64
+        quotationVersionId:
+          type: integer
+          format: int64
+        agreementType:
+          type: string
+          enum:
+          - LEASE
+          - SALE
+          - STAY
+          - SERVICE
+        additionalTerms:
+          type: string
+    SignAgreementRequest:
+      type: object
+      required:
+      - signMethod
+      properties:
+        signMethod:
+          type: string
+          enum:
+          - ELECTRONIC
+          - OFFLINE
+        signatureProvider:
+          type: string
+    TerminateAgreementRequest:
+      type: object
+      required:
+      - effectiveDate
+      - reason
+      properties:
+        effectiveDate:
+          type: string
+          format: date-time
+        reason:
+          type: string
+    ReasonRequest:
+      type: object
+      required:
+      - reason
+      properties:
+        reason:
+          type: string

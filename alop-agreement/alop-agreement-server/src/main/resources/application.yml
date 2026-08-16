@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-agreement
+server:
+  port: 48108

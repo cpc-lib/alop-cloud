@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PaymentSucceeded",
+  "type": "object",
+  "required": ["eventId","eventType","eventVersion","aggregateType","aggregateId","aggregateVersion","tenantId","traceId","occurredAt","data"],
+  "properties": {
+    "eventId": {"type":"string","minLength":1},
+    "eventType": {"const":"payment.payment.succeeded.v1"},
+    "eventVersion": {"const":"1.0"},
+    "aggregateType": {"const":"PaymentOrder"},
+    "aggregateId": {"type":"string"},
+    "aggregateVersion": {"type":"integer","minimum":0},
+    "tenantId": {"type":"string","minLength":1},
+    "traceId": {"type":"string"},
+    "correlationId": {"type":["string","null"]},
+    "occurredAt": {"type":"string","format":"date-time"},
+    "data": {
+      "type":"object",
+      "required":["paymentOrderId","paymentNo","attemptId","attemptNo","transactionId","channel","paymentMethod","channelTradeNo","providerMerchantId","customerId","amount","currency","paidAt","statusSource","businessRelations"],
+      "properties": {
+        "paymentOrderId":{"type":"integer"},
+        "paymentNo":{"type":"string"},
+        "attemptId":{"type":"integer"},
+        "attemptNo":{"type":"string"},
+        "transactionId":{"type":"integer"},
+        "channel":{"type":"string","enum":["WECHAT","ALIPAY","UNIONPAY"]},
+        "paymentMethod":{"type":"string"},
+        "channelTradeNo":{"type":"string"},
+        "providerMerchantId":{"type":"string"},
+        "providerAppId":{"type":["string","null"]},
+        "customerId":{"type":"integer"},
+        "amount":{"type":"string","pattern":"^\\d+(\\.\\d{1,2})?$"},
+        "currency":{"type":"string","minLength":3,"maxLength":3},
+        "paidAt":{"type":"string","format":"date-time"},
+        "statusSource":{"type":"string","enum":["CALLBACK","QUERY","RECONCILIATION","LATE_CALLBACK"]},
+        "lateSuccess":{"type":"boolean"},
+        "businessRelations":{
+          "type":"array","minItems":1,
+          "items":{
+            "type":"object",
+            "required":["businessType","businessId","expectedAmount"],
+            "properties":{
+              "businessType":{"type":"string"},
+              "businessId":{"type":"integer"},
+              "businessNo":{"type":["string","null"]},
+              "chargeType":{"type":["string","null"]},
+              "expectedAmount":{"type":"string"}
+            },
+            "additionalProperties":false
+          }
+        }
+      },
+      "additionalProperties":false
+    }
+  },
+  "additionalProperties":false
+}

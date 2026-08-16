@@ -1,0 +1,194 @@
+openapi: 3.0.3
+info:
+  title: ALOP Agreement Enterprise Extensions API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/agreements/{agreementId}/parties:
+    get:
+      operationId: listAgreementParties
+      x-alop-tenant-scoped: true
+      parameters:
+      - name: agreementId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses: &id001
+        '200':
+          description: success
+        '400':
+          description: validation/domain error
+        '403':
+          description: forbidden
+        '409':
+          description: conflict
+        '500':
+          description: system error
+    post:
+      operationId: addAgreementParty
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - name: agreementId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddAgreementPartyRequest'
+      responses: *id001
+  /api/admin/v1/resource-transfers:
+    get:
+      operationId: listResourceTransfers
+      x-alop-tenant-scoped: true
+      parameters:
+      - name: agreementId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: status
+        in: query
+        schema:
+          type: string
+      responses: *id001
+    post:
+      operationId: createResourceTransfer
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateResourceTransferRequest'
+      responses: *id001
+  /api/admin/v1/resource-transfers/{transferId}/submit:
+    post:
+      operationId: submitResourceTransfer
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - name: transferId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonVersionRequest'
+      responses: *id001
+components:
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    AddAgreementPartyRequest:
+      type: object
+      required:
+      - partyRole
+      - partyType
+      - legalNameSnapshot
+      - effectiveFrom
+      properties:
+        partyRole:
+          type: string
+        partyType:
+          type: string
+          enum:
+          - PERSON
+          - COMPANY
+          - INTERNAL_ORG
+        customerId:
+          type: integer
+          format: int64
+        organizationId:
+          type: integer
+          format: int64
+        legalNameSnapshot:
+          type: string
+          maxLength: 256
+        taxNoSnapshot:
+          type: string
+        contactNameSnapshot:
+          type: string
+        emailSnapshot:
+          type: string
+          format: email
+        effectiveFrom:
+          type: string
+          format: date-time
+    CreateResourceTransferRequest:
+      type: object
+      required:
+      - agreementId
+      - fromResourceUnitId
+      - toResourceUnitId
+      - requestedEffectiveAt
+      - reasonType
+      properties:
+        agreementId:
+          type: integer
+          format: int64
+        fromResourceUnitId:
+          type: integer
+          format: int64
+        toResourceUnitId:
+          type: integer
+          format: int64
+        requestedEffectiveAt:
+          type: string
+          format: date-time
+        reasonType:
+          type: string
+        reason:
+          type: string
+          maxLength: 512
+    ReasonVersionRequest:
+      type: object
+      required:
+      - reason
+      - version
+      properties:
+        reason:
+          type: string
+          maxLength: 512
+        version:
+          type: integer
+          minimum: 0

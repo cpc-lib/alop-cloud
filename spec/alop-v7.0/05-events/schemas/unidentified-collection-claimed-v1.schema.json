@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "finance.unidentified-collection.claimed.v1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "tenantId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "eventType": {
+      "const": "finance.unidentified-collection.claimed.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "tenantId": {
+      "type": "integer"
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "unidentifiedCollectionId",
+        "collectionId",
+        "customerId"
+      ],
+      "properties": {
+        "unidentifiedCollectionId": {
+          "type": "integer"
+        },
+        "collectionId": {
+          "type": "integer"
+        },
+        "customerId": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

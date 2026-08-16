@@ -1,0 +1,323 @@
+openapi: 3.0.3
+info:
+  title: ALOP CRM API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/leads:
+    post:
+      summary: Create lead
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLeadRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postLeads
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/leads/{leadId}/convert:
+    post:
+      summary: Convert lead
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      - in: path
+        name: leadId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConvertLeadRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postLeadsLeadIdConvert
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/opportunities:
+    post:
+      summary: Create opportunity
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOpportunityRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postOpportunities
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/quotations:
+    post:
+      summary: Create quotation
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuotationRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postQuotations
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/quotations/{quotationId}/versions/{versionNo}/send:
+    post:
+      summary: Send quotation
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      parameters:
+      - in: path
+        name: quotationId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: path
+        name: versionNo
+        required: true
+        schema:
+          type: integer
+          format: int64
+      operationId: postQuotationsQuotationIdVersionsVersionNoSend
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/quotations/{quotationId}/versions/{versionNo}/accept:
+    post:
+      summary: Accept quotation
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      parameters:
+      - in: path
+        name: quotationId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: path
+        name: versionNo
+        required: true
+        schema:
+          type: integer
+          format: int64
+      operationId: postQuotationsQuotationIdVersionsVersionNoAccept
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    CreateLeadRequest:
+      type: object
+      required:
+      - source
+      - name
+      properties:
+        source:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        company:
+          type: string
+        requirement:
+          type: string
+    ConvertLeadRequest:
+      type: object
+      required:
+      - createOpportunity
+      properties:
+        createOpportunity:
+          type: boolean
+    CreateOpportunityRequest:
+      type: object
+      required:
+      - customerId
+      - opportunityType
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        opportunityType:
+          type: string
+          enum:
+          - LEASE
+          - SALE
+        expectedStart:
+          type: string
+          format: date-time
+        expectedEnd:
+          type: string
+          format: date-time
+    CreateQuotationRequest:
+      type: object
+      required:
+      - customerId
+      - opportunityId
+      - validUntil
+      - items
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        opportunityId:
+          type: integer
+          format: int64
+        validUntil:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            type: object
+            required:
+            - resourceUnitId
+            - offeringId
+            - startTime
+            - endTime
+            - unitPrice
+            properties:
+              resourceUnitId:
+                type: integer
+                format: int64
+              offeringId:
+                type: integer
+                format: int64
+              startTime:
+                type: string
+                format: date-time
+              endTime:
+                type: string
+                format: date-time
+              unitPrice:
+                type: number
+                format: decimal

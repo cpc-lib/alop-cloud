@@ -1,0 +1,9 @@
+{
+  "threads": 100,
+  "tenantId": 1001,
+  "resourceUnitId": 801,
+  "start": "2027-01-01T00:00:00+08:00",
+  "end": "2028-01-01T00:00:00+08:00",
+  "expectedSuccess": 1,
+  "expectedValidReservations": 1
+}

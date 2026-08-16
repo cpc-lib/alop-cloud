@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Parking Vehicle Bound",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateId",
+    "tenantId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "eventType": {
+      "const": "asset.parking.vehicle-bound.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "aggregateType": {
+      "type": "string"
+    },
+    "aggregateId": {
+      "type": "string"
+    },
+    "aggregateVersion": {
+      "type": "integer"
+    },
+    "tenantId": {
+      "type": "string"
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "correlationId": {
+      "type": "string"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "agreementId": {
+          "type": "integer"
+        },
+        "agreementItemId": {
+          "type": "integer"
+        },
+        "parkingResourceId": {
+          "type": "integer"
+        },
+        "vehicleId": {
+          "type": "integer"
+        },
+        "effectiveFrom": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "effectiveTo": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "agreementId",
+        "agreementItemId",
+        "parkingResourceId",
+        "vehicleId",
+        "effectiveFrom"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

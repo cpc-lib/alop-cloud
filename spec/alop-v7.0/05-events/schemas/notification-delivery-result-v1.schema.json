@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "notification.delivery.result.v1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateId",
+    "aggregateType",
+    "aggregateVersion",
+    "traceId",
+    "tenantId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "eventType": {
+      "enum": [
+        "notification.delivery.sent.v1",
+        "notification.delivery.failed.v1",
+        "notification.delivery.bounced.v1"
+      ]
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "aggregateId": {
+      "type": "string"
+    },
+    "tenantId": {
+      "type": "string"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "notificationMessageId",
+        "deliveryId",
+        "channel",
+        "businessType",
+        "businessId",
+        "status"
+      ],
+      "properties": {
+        "notificationMessageId": {
+          "type": "integer"
+        },
+        "deliveryId": {
+          "type": "integer"
+        },
+        "channel": {
+          "type": "string",
+          "enum": [
+            "SMS",
+            "EMAIL",
+            "IN_APP"
+          ]
+        },
+        "businessType": {
+          "type": "string"
+        },
+        "businessId": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "string"
+        },
+        "providerCode": {
+          "type": "string"
+        },
+        "failureCode": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "aggregateType": {
+      "type": "string"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "correlationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

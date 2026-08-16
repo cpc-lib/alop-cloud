@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-billing
+server:
+  port: 48109

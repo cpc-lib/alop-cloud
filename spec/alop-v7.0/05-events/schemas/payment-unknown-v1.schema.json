@@ -1,0 +1,34 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"PaymentUnknown",
+  "type":"object",
+  "required":["eventId","eventType","eventVersion","aggregateType","aggregateId","aggregateVersion","tenantId","traceId","occurredAt","data"],
+  "properties":{
+    "eventId":{"type":"string"},
+    "eventType":{"const":"payment.payment.unknown.v1"},
+    "eventVersion":{"const":"1.0"},
+    "aggregateType":{"const":"PaymentOrder"},
+    "aggregateId":{"type":"string"},
+    "aggregateVersion":{"type":"integer"},
+    "tenantId":{"type":"string"},
+    "traceId":{"type":"string"},
+    "correlationId":{"type":["string","null"]},
+    "occurredAt":{"type":"string","format":"date-time"},
+    "data":{
+      "type":"object",
+      "required":["paymentOrderId","paymentNo","attemptId","attemptNo","channel","unknownSince","reasonCode"],
+      "properties":{
+        "paymentOrderId":{"type":"integer"},
+        "paymentNo":{"type":"string"},
+        "attemptId":{"type":"integer"},
+        "attemptNo":{"type":"string"},
+        "channel":{"type":"string"},
+        "unknownSince":{"type":"string","format":"date-time"},
+        "reasonCode":{"type":"string"},
+        "queryCount":{"type":"integer","minimum":0}
+      },
+      "additionalProperties":false
+    }
+  },
+  "additionalProperties":false
+}

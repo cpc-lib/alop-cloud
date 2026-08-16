@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-operations
+server:
+  port: 48117

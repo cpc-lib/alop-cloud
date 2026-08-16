@@ -1,0 +1,6 @@
+{
+  "receivable": "90000.00",
+  "collection": "100000.00",
+  "expectedAllocation": "90000.00",
+  "expectedCustomerAdvance": "10000.00"
+}

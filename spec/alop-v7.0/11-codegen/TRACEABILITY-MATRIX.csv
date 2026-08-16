@@ -1,0 +1,15 @@
+﻿requirement_id,business_rule,domains,tables,apis,events,acceptance_tests,tasks
+TENANT-ISO-001,Cross-tenant access denied,tenant/iam,"tenant, tenant_user_membership",tenant.yaml,,tenant isolation tests,TASK-002
+INV-RES-001,No resource time overlap incl conflict group,asset/reservation,"resource_schedule_guard,reservation,reservation_item,resource_conflict_group_member",asset.yaml,asset.reservation.created.v1,100 concurrent + whole/room conflict,TASK-005/TASK-007
+AGR-SIGN-001,Agreement signing converts reservation via Saga,agreement/asset,"agreement_sign_process,agreement,resource_occupancy,reservation",agreement.yaml,agreement.agreement.signed.v1,sign saga compensation E2E,TASK-012
+AGR-CLOSE-001,EXPIRED/TERMINATED is not CLOSED until operational/financial closure,agreement/finance/invoice,"agreement,handover_order,receivable,security_deposit_account",agreement.yaml,,agreement close gates,TASK-010/TASK-018/TASK-027
+BIL-001,"1-12 month billing with trace, utility/property/parking",billing,"billing_rule,billing_plan,bill,bill_item,utility_usage_period","billing.yaml,utility-parking.yaml",billing.bill.issued.v1,rounding/leap/utilities tests,TASK-013/TASK-024/TASK-028
+PAY-001,Client success is not payment truth; UNKNOWN query-before-retry,payment,"payment_order,payment_attempt,payment_transaction",payment.yaml,"payment.payment.succeeded.v1,payment.payment.unknown.v1",callback x100 + UNKNOWN recovery,TASK-015
+FIN-001,Collection + Receivable + Allocation + Ledger local strong tx,finance,"collection_record,receivable,payment_allocation,accounting_entry,accounting_line",finance.yaml,finance allocation events,concurrent allocation + ledger balance,TASK-014
+DEP-001,Deposit is liability and independently settled,finance,"security_deposit_account,security_deposit_transaction",finance-extensions.yaml,finance.security-deposit.settled.v1,deposit deduction/refund concurrency,TASK-027
+INV-001,Invoice quota prevents over-invoicing; red flush restores quota,invoice/finance,"invoice_application,invoice,invoice_relation,invoice_quota_reservation",invoice.yaml,invoice.invoice.issued.v1,80+80 concurrent quota / red-flush reissue,TASK-016
+REC-001,0.01 mismatch is reconciliation exception,finance,"reconciliation_batch,reconciliation_item,reconciliation_exception",finance.yaml,,100.00 vs 99.99,TASK-017
+NOT-001,SMS/email/in-app reminder delivery is idempotent and audited,notification,"notification_message,notification_delivery,notification_delivery_attempt",notification.yaml,notification.delivery-result.v1,duplicate trigger + retry/bounce,TASK-025
+AP-001,AP payout cannot exceed payable and UNKNOWN is queried,ap,"payable,payment_request,payment_request_item",ap.yaml,ap.payable.created.v1,partial payout / UNKNOWN,TASK-032
+OWN-001,Owner settlement sources consumed once and pay through AP,owner-settlement/ap,"owner_settlement_batch,owner_settlement_item,payable",owner-settlement.yaml,owner-settlement.statement.approved.v1,duplicate source + adjustment batch,TASK-033
+TAX-001,Historical bill/invoice keeps tax snapshot,tax/billing/invoice,"tax_rule,bill_item,invoice_item",tax.yaml,tax.rule.published.v1,effective-date switch,TASK-031

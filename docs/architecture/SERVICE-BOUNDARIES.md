@@ -1,0 +1,23 @@
+# Service Boundaries
+
+- `alop-tenant`
+- `alop-iam`
+- `alop-organization`
+- `alop-infra`
+- `alop-workflow`
+- `alop-asset`
+- `alop-reservation`
+- `alop-crm`
+- `alop-agreement`
+- `alop-billing`
+- `alop-tax`
+- `alop-payment`
+- `alop-finance`
+- `alop-invoice`
+- `alop-ap`
+- `alop-owner-settlement`
+- `alop-notification`
+- `alop-operations`
+- `alop-search`
+- `alop-file`
+- `alop-integration`

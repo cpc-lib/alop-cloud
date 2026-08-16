@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "asset.reservation.expiring.v1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateType",
+    "aggregateId",
+    "aggregateVersion",
+    "tenantId",
+    "traceId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eventType": {
+      "const": "asset.reservation.expiring.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "aggregateType": {
+      "type": "string"
+    },
+    "aggregateId": {
+      "type": "string"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "correlationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "reservationId",
+        "customerId",
+        "expireAt",
+        "triggerKey",
+        "remainingMinutes"
+      ],
+      "properties": {
+        "reservationId": {
+          "type": "integer"
+        },
+        "customerId": {
+          "type": "integer"
+        },
+        "expireAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "triggerKey": {
+          "type": "string"
+        },
+        "remainingMinutes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

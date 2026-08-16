@@ -1,0 +1,98 @@
+platform:
+- platform:tenant:create
+- platform:tenant:suspend
+- platform:tenant:route:update
+- platform:support-session:create
+asset:
+- asset:view
+- asset:edit
+- asset:approve
+- asset:listing:publish
+- reservation:create
+- reservation:confirm
+crm:
+- crm:lead:manage
+- crm:customer:view
+- crm:customer:edit
+- crm:quotation:create
+- crm:quotation:approve
+agreement:
+- agreement:create
+- agreement:approve
+- agreement:sign
+- agreement:terminate
+finance:
+- finance:receivable:view
+- finance:manual-collection
+- finance:allocation:reverse
+- finance:adjustment
+- reconciliation:handle
+payment:
+- payment:create
+- payment:view
+- payment:query-provider
+- payment:close
+- payment:refund:apply
+- payment:refund:approve
+- payment:refund:execute
+- payment:merchant:view
+- payment:merchant:manage
+- payment:exception:handle
+invoice:
+- invoice:apply
+- invoice:approve
+- invoice:red-flush
+- invoice:email:send
+- invoice:email:view-history
+utility:
+- utility:meter:view
+- utility:meter:manage
+- utility:reading:submit
+- utility:reading:verify
+- utility:reading:correct
+- billing:utility-tariff:manage
+- billing:property-fee:manage
+parking:
+- parking:view
+- parking:manage
+- parking:vehicle:bind
+notification:
+- notification:rule:view
+- notification:rule:manage
+- notification:template:view
+- notification:template:manage
+- notification:delivery:view
+- notification:delivery:retry
+- notification:provider:manage
+
+agreement_enterprise:
+- agreement:party:view
+- agreement:party:manage
+- agreement:party:change
+- agreement:resource-transfer:create
+- agreement:resource-transfer:approve
+- agreement:resource-transfer:execute
+finance_enterprise:
+- finance:deposit:view
+- finance:deposit:settle
+- finance:deposit:refund
+- finance:unidentified:view
+- finance:unidentified:claim
+- finance:unidentified:refund
+tax:
+- tax:rule:view
+- tax:rule:manage
+- tax:rule:publish
+ap:
+- ap:supplier:view
+- ap:supplier:manage
+- ap:payable:view
+- ap:payment-request:create
+- ap:payment-request:approve
+- ap:payout:execute
+owner_settlement:
+- owner:view
+- owner:manage
+- owner:settlement:view
+- owner:settlement:calculate
+- owner:settlement:approve

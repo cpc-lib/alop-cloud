@@ -1,0 +1,7 @@
+{
+  "allocatedRent": "30000.00",
+  "managementRate": "0.10",
+  "propertyFeeDeduction": "2000.00",
+  "maintenanceDeduction": "500.00",
+  "expectedOwnerPayable": "24500.00"
+}

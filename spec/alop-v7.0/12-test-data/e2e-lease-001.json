@@ -1,0 +1,43 @@
+{
+  "scenario": "LEASE-001",
+  "tenant": {
+    "id": 1001,
+    "code": "TENANT_A",
+    "timezone": "Asia/Shanghai",
+    "currency": "CNY"
+  },
+  "customer": {
+    "id": 2001,
+    "name": "ABC科技"
+  },
+  "resources": [
+    {
+      "id": 801,
+      "type": "OFFICE"
+    },
+    {
+      "id": 802,
+      "type": "OFFICE"
+    },
+    {
+      "id": 9001,
+      "type": "PARKING_SPACE"
+    }
+  ],
+  "period": {
+    "start": "2027-01-01T00:00:00+08:00",
+    "end": "2028-01-01T00:00:00+08:00"
+  },
+  "rent": {
+    "monthly": "30000.00",
+    "billingCycleMonths": 3,
+    "depositMonths": 2
+  },
+  "expected": [
+    "reservation succeeds",
+    "agreement signed then effective",
+    "deposit liability",
+    "quarterly rent receivables",
+    "allocation/ledger balanced"
+  ]
+}

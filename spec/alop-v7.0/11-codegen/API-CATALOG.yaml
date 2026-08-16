@@ -1,0 +1,794 @@
+version: '7.0'
+operations:
+- file: 04-openapi/agreement-extensions.yaml
+  method: GET
+  path: /api/admin/v1/agreements/{agreementId}/parties
+  operationId: listAgreementParties
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: ''
+- file: 04-openapi/agreement-extensions.yaml
+  method: POST
+  path: /api/admin/v1/agreements/{agreementId}/parties
+  operationId: addAgreementParty
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/agreement-extensions.yaml
+  method: GET
+  path: /api/admin/v1/resource-transfers
+  operationId: listResourceTransfers
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: ''
+- file: 04-openapi/agreement-extensions.yaml
+  method: POST
+  path: /api/admin/v1/resource-transfers
+  operationId: createResourceTransfer
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/agreement-extensions.yaml
+  method: POST
+  path: /api/admin/v1/resource-transfers/{transferId}/submit
+  operationId: submitResourceTransfer
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/agreement.yaml
+  method: POST
+  path: /api/admin/v1/agreements
+  operationId: postAgreements
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create agreement
+- file: 04-openapi/agreement.yaml
+  method: POST
+  path: /api/admin/v1/agreements/{agreementId}/submit
+  operationId: postAgreementsAgreementIdSubmit
+  command: true
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Submit agreement
+- file: 04-openapi/agreement.yaml
+  method: POST
+  path: /api/admin/v1/agreements/{agreementId}/sign
+  operationId: postAgreementsAgreementIdSign
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Sign agreement
+- file: 04-openapi/agreement.yaml
+  method: POST
+  path: /api/admin/v1/agreements/{agreementId}/terminate
+  operationId: postAgreementsAgreementIdTerminate
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Request termination
+- file: 04-openapi/agreement.yaml
+  method: POST
+  path: /api/admin/v1/agreements/{agreementId}/close
+  operationId: postAgreementsAgreementIdClose
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Close agreement
+- file: 04-openapi/ap.yaml
+  method: GET
+  path: /api/admin/v1/suppliers
+  operationId: listSuppliers
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: ''
+- file: 04-openapi/ap.yaml
+  method: POST
+  path: /api/admin/v1/suppliers
+  operationId: createSupplier
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/ap.yaml
+  method: GET
+  path: /api/admin/v1/payables
+  operationId: listPayables
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: ''
+- file: 04-openapi/ap.yaml
+  method: POST
+  path: /api/admin/v1/payment-requests
+  operationId: createAPPaymentRequest
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/asset.yaml
+  method: POST
+  path: /api/admin/v1/assets
+  operationId: postAssets
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create asset
+- file: 04-openapi/asset.yaml
+  method: POST
+  path: /api/admin/v1/assets/{assetId}/submit
+  operationId: postAssetsAssetIdSubmit
+  command: true
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Submit asset
+- file: 04-openapi/asset.yaml
+  method: POST
+  path: /api/admin/v1/resources
+  operationId: postResources
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create resource
+- file: 04-openapi/asset.yaml
+  method: GET
+  path: /api/admin/v1/resources/{resourceId}/availability
+  operationId: getResourcesResourceIdAvailability
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Check availability
+- file: 04-openapi/asset.yaml
+  method: POST
+  path: /api/admin/v1/reservations
+  operationId: postReservations
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create reservation
+- file: 04-openapi/asset.yaml
+  method: POST
+  path: /api/admin/v1/reservations/{reservationId}/confirm
+  operationId: postReservationsReservationIdConfirm
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Confirm reservation
+- file: 04-openapi/asset.yaml
+  method: POST
+  path: /internal/v1/reservations/{reservationId}/commit
+  operationId: postReservationsReservationIdCommit
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Commit reservation for agreement
+- file: 04-openapi/asset.yaml
+  method: GET
+  path: /api/admin/v1/parking-spaces/{resourceId}/availability
+  operationId: getParkingSpacesResourceIdAvailability
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Check parking space availability using common ScheduleGuard inventory
+- file: 04-openapi/billing.yaml
+  method: GET
+  path: /api/admin/v1/bills/{billId}
+  operationId: getBillsBillId
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Get bill
+- file: 04-openapi/billing.yaml
+  method: POST
+  path: /internal/v1/agreements/{agreementId}/billing-rules/materialize
+  operationId: postAgreementsAgreementIdBillingRulesMaterialize
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Materialize billing rules
+- file: 04-openapi/billing.yaml
+  method: POST
+  path: /api/admin/v1/billing/utility/preview
+  operationId: postBillingUtilityPreview
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Preview verified water/electricity charge
+- file: 04-openapi/billing.yaml
+  method: POST
+  path: /api/admin/v1/billing/property-management-fee/preview
+  operationId: postBillingPropertyManagementFeePreview
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Preview property management fee
+- file: 04-openapi/crm.yaml
+  method: POST
+  path: /api/admin/v1/leads
+  operationId: postLeads
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create lead
+- file: 04-openapi/crm.yaml
+  method: POST
+  path: /api/admin/v1/leads/{leadId}/convert
+  operationId: postLeadsLeadIdConvert
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Convert lead
+- file: 04-openapi/crm.yaml
+  method: POST
+  path: /api/admin/v1/opportunities
+  operationId: postOpportunities
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create opportunity
+- file: 04-openapi/crm.yaml
+  method: POST
+  path: /api/admin/v1/quotations
+  operationId: postQuotations
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create quotation
+- file: 04-openapi/crm.yaml
+  method: POST
+  path: /api/admin/v1/quotations/{quotationId}/versions/{versionNo}/send
+  operationId: postQuotationsQuotationIdVersionsVersionNoSend
+  command: true
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Send quotation
+- file: 04-openapi/crm.yaml
+  method: POST
+  path: /api/admin/v1/quotations/{quotationId}/versions/{versionNo}/accept
+  operationId: postQuotationsQuotationIdVersionsVersionNoAccept
+  command: true
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Accept quotation
+- file: 04-openapi/finance-extensions.yaml
+  method: GET
+  path: /api/admin/v1/security-deposits/{agreementId}
+  operationId: getSecurityDeposit
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: ''
+- file: 04-openapi/finance-extensions.yaml
+  method: POST
+  path: /api/admin/v1/security-deposits/{agreementId}/settle
+  operationId: settleSecurityDeposit
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/finance-extensions.yaml
+  method: GET
+  path: /api/admin/v1/finance/unidentified-collections
+  operationId: listUnidentifiedCollections
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: ''
+- file: 04-openapi/finance-extensions.yaml
+  method: POST
+  path: /api/admin/v1/finance/unidentified-collections/{id}/claim
+  operationId: claimUnidentifiedCollection
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/finance.yaml
+  method: GET
+  path: /api/admin/v1/receivables
+  operationId: getReceivables
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: List receivables
+- file: 04-openapi/finance.yaml
+  method: POST
+  path: /api/admin/v1/collections/{collectionId}/allocations
+  operationId: postCollectionsCollectionIdAllocations
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Allocate collection
+- file: 04-openapi/finance.yaml
+  method: POST
+  path: /api/admin/v1/allocations/{allocationId}/reverse
+  operationId: postAllocationsAllocationIdReverse
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Reverse allocation
+- file: 04-openapi/finance.yaml
+  method: POST
+  path: /internal/v1/payment-targets/quote
+  operationId: postPaymentTargetsQuote
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Authoritative payable quote for Payment Service
+- file: 04-openapi/finance.yaml
+  method: POST
+  path: /internal/v1/refund-reservations/reserve
+  operationId: postRefundReservationsReserve
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Reserve financially refundable amount before provider refund
+- file: 04-openapi/finance.yaml
+  method: POST
+  path: /internal/v1/refund-reservations/{reservationNo}/confirm
+  operationId: postRefundReservationsReservationNoConfirm
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Confirm refund reservation after verified provider refund success
+- file: 04-openapi/finance.yaml
+  method: POST
+  path: /internal/v1/refund-reservations/{reservationNo}/release
+  operationId: postRefundReservationsReservationNoRelease
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Release refund reservation after definitive failure/cancel
+- file: 04-openapi/finance.yaml
+  method: GET
+  path: /internal/v1/allocations/{allocationId}/invoice-eligibility
+  operationId: getAllocationsAllocationIdInvoiceEligibility
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Invoice eligibility
+- file: 04-openapi/finance.yaml
+  method: POST
+  path: /internal/v1/invoice-quota/reserve
+  operationId: postInvoiceQuotaReserve
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Reserve invoice quota
+- file: 04-openapi/finance.yaml
+  method: POST
+  path: /api/admin/v1/reconciliation/batches
+  operationId: postReconciliationBatches
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Run reconciliation
+- file: 04-openapi/invoice.yaml
+  method: POST
+  path: /api/admin/v1/invoice-applications
+  operationId: postInvoiceApplications
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create invoice application
+- file: 04-openapi/invoice.yaml
+  method: POST
+  path: /api/admin/v1/invoice-applications/{applicationId}/submit
+  operationId: postInvoiceApplicationsApplicationIdSubmit
+  command: true
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Submit invoice application
+- file: 04-openapi/invoice.yaml
+  method: POST
+  path: /api/admin/v1/invoices/{invoiceId}/red-flush
+  operationId: postInvoicesInvoiceIdRedFlush
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Request red flush
+- file: 04-openapi/invoice.yaml
+  method: POST
+  path: /api/admin/v1/invoices/{invoiceId}/email-deliveries
+  operationId: postInvoicesInvoiceIdEmailDeliveries
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Send or resend issued invoice by email
+- file: 04-openapi/invoice.yaml
+  method: GET
+  path: /api/admin/v1/invoices/{invoiceId}/email-deliveries
+  operationId: getInvoicesInvoiceIdEmailDeliveries
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: List invoice email delivery history
+- file: 04-openapi/invoice.yaml
+  method: GET
+  path: /internal/v1/invoice-delivery-instructions/{instructionId}
+  operationId: getInvoiceDeliveryInstructionsInstructionId
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Fetch secure invoice delivery instruction for Notification Service
+- file: 04-openapi/notification.yaml
+  method: GET
+  path: /api/admin/v1/notification-rules
+  operationId: getNotificationRules
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: List notification rules
+- file: 04-openapi/notification.yaml
+  method: POST
+  path: /api/admin/v1/notification-rules
+  operationId: postNotificationRules
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create notification rule
+- file: 04-openapi/notification.yaml
+  method: POST
+  path: /api/admin/v1/notification-templates
+  operationId: postNotificationTemplates
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create a new versioned notification template
+- file: 04-openapi/notification.yaml
+  method: POST
+  path: /api/admin/v1/notification-templates/{templateCode}/preview
+  operationId: postNotificationTemplatesTemplateCodePreview
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Preview rendered SMS/email template
+- file: 04-openapi/notification.yaml
+  method: GET
+  path: /api/admin/v1/notification-provider-configs
+  operationId: getNotificationProviderConfigs
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: List masked notification provider configurations
+- file: 04-openapi/notification.yaml
+  method: POST
+  path: /api/admin/v1/notification-provider-configs
+  operationId: postNotificationProviderConfigs
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create notification provider configuration
+- file: 04-openapi/notification.yaml
+  method: GET
+  path: /api/admin/v1/notification-deliveries
+  operationId: getNotificationDeliveries
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: List notification deliveries
+- file: 04-openapi/notification.yaml
+  method: POST
+  path: /api/admin/v1/notification-deliveries/{deliveryId}/retry
+  operationId: postNotificationDeliveriesDeliveryIdRetry
+  command: true
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Retry a retryable failed notification delivery
+- file: 04-openapi/notification.yaml
+  method: GET
+  path: /api/admin/v1/notification-preferences/{subjectType}/{subjectId}
+  operationId: getNotificationPreferencesSubjectTypeSubjectId
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Get recipient notification preference
+- file: 04-openapi/notification.yaml
+  method: PUT
+  path: /api/admin/v1/notification-preferences/{subjectType}/{subjectId}
+  operationId: putNotificationPreferencesSubjectTypeSubjectId
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Update recipient notification preference
+- file: 04-openapi/notification.yaml
+  method: POST
+  path: /internal/v1/notifications
+  operationId: postNotifications
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create explicit notification request from trusted internal service
+- file: 04-openapi/notification.yaml
+  method: POST
+  path: /callbacks/notification/sms/{providerCode}
+  operationId: postNotificationSmsProviderCode
+  command: false
+  tenantScoped: true
+  hasRequestBody: true
+  summary: SMS provider delivery receipt callback
+- file: 04-openapi/notification.yaml
+  method: POST
+  path: /callbacks/notification/email/{providerCode}
+  operationId: postNotificationEmailProviderCode
+  command: false
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Email provider delivery/bounce callback
+- file: 04-openapi/owner-settlement.yaml
+  method: GET
+  path: /api/admin/v1/property-owners
+  operationId: listPropertyOwners
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: ''
+- file: 04-openapi/owner-settlement.yaml
+  method: POST
+  path: /api/admin/v1/property-owners
+  operationId: createPropertyOwner
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/owner-settlement.yaml
+  method: GET
+  path: /api/admin/v1/owner-settlements
+  operationId: listOwnerSettlements
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: ''
+- file: 04-openapi/owner-settlement.yaml
+  method: POST
+  path: /api/admin/v1/owner-settlements
+  operationId: createOwnerSettlement
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/owner-settlement.yaml
+  method: POST
+  path: /api/admin/v1/owner-settlements/{id}/approve
+  operationId: approveOwnerSettlement
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/payment.yaml
+  method: POST
+  path: /api/app/v1/payments
+  operationId: createPayment
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create payment order and first provider attempt
+- file: 04-openapi/payment.yaml
+  method: GET
+  path: /api/app/v1/payments/{paymentNo}
+  operationId: getPayment
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Get server-side payment status
+- file: 04-openapi/payment.yaml
+  method: POST
+  path: /api/app/v1/payments/{paymentNo}/attempts
+  operationId: createPaymentAttempt
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create another channel attempt for an unpaid order
+- file: 04-openapi/payment.yaml
+  method: POST
+  path: /api/admin/v1/payments/{paymentNo}/provider-query
+  operationId: queryPaymentProvider
+  command: true
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Trigger provider status query
+- file: 04-openapi/payment.yaml
+  method: POST
+  path: /api/admin/v1/payments/{paymentNo}/close
+  operationId: closePayment
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Close unpaid payment after provider confirmation
+- file: 04-openapi/payment.yaml
+  method: GET
+  path: /api/admin/v1/payments/{paymentNo}/transactions
+  operationId: listPaymentTransactions
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: List provider-confirmed payment transactions
+- file: 04-openapi/payment.yaml
+  method: POST
+  path: /api/admin/v1/payments/{paymentNo}/refunds
+  operationId: createRefund
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Apply for refund
+- file: 04-openapi/payment.yaml
+  method: GET
+  path: /api/admin/v1/refunds/{refundNo}
+  operationId: getRefund
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Get refund status
+- file: 04-openapi/payment.yaml
+  method: POST
+  path: /api/admin/v1/refunds/{refundNo}/provider-query
+  operationId: queryRefundProvider
+  command: true
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Query UNKNOWN refund at provider
+- file: 04-openapi/payment.yaml
+  method: POST
+  path: /api/callback/v1/payments/{channel}
+  operationId: paymentCallback
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Provider payment callback
+- file: 04-openapi/payment.yaml
+  method: POST
+  path: /api/callback/v1/refunds/{channel}
+  operationId: refundCallback
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Provider refund callback
+- file: 04-openapi/payment.yaml
+  method: GET
+  path: /api/admin/v1/payment-merchants
+  operationId: listPaymentMerchants
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: List tenant payment merchant metadata
+- file: 04-openapi/payment.yaml
+  method: POST
+  path: /api/admin/v1/payment-merchants
+  operationId: createPaymentMerchant
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create payment merchant configuration
+- file: 04-openapi/tax.yaml
+  method: GET
+  path: /api/admin/v1/tax/rules
+  operationId: listTaxRules
+  command: false
+  tenantScoped: true
+  hasRequestBody: false
+  summary: ''
+- file: 04-openapi/tax.yaml
+  method: POST
+  path: /api/admin/v1/tax/rules
+  operationId: createTaxRule
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/tax.yaml
+  method: POST
+  path: /api/admin/v1/tax/rules/{id}/publish
+  operationId: publishTaxRule
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/tax.yaml
+  method: POST
+  path: /internal/v1/tax/calculate
+  operationId: calculateTax
+  command: false
+  tenantScoped: true
+  hasRequestBody: true
+  summary: ''
+- file: 04-openapi/tenant.yaml
+  method: POST
+  path: /api/platform/v1/tenants
+  operationId: postTenants
+  command: true
+  tenantScoped: false
+  hasRequestBody: true
+  summary: Create tenant
+- file: 04-openapi/tenant.yaml
+  method: POST
+  path: /api/platform/v1/tenants/{tenantId}/suspend
+  operationId: postTenantsTenantIdSuspend
+  command: true
+  tenantScoped: false
+  hasRequestBody: true
+  summary: Suspend tenant
+- file: 04-openapi/tenant.yaml
+  method: POST
+  path: /api/platform/v1/tenants/{tenantId}/resume
+  operationId: postTenantsTenantIdResume
+  command: true
+  tenantScoped: false
+  hasRequestBody: true
+  summary: Resume tenant
+- file: 04-openapi/tenant.yaml
+  method: POST
+  path: /api/platform/v1/tenants/{tenantId}/terminate
+  operationId: postTenantsTenantIdTerminate
+  command: true
+  tenantScoped: false
+  hasRequestBody: true
+  summary: Terminate tenant
+- file: 04-openapi/utility-parking.yaml
+  method: POST
+  path: /api/admin/v1/utility-meters
+  operationId: postUtilityMeters
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Register water/electric meter
+- file: 04-openapi/utility-parking.yaml
+  method: POST
+  path: /api/admin/v1/utility-meters/{meterId}/bindings
+  operationId: postUtilityMetersMeterIdBindings
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Bind meter to asset/space/resource
+- file: 04-openapi/utility-parking.yaml
+  method: POST
+  path: /api/admin/v1/utility-meters/{meterId}/readings
+  operationId: postUtilityMetersMeterIdReadings
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Submit meter reading
+- file: 04-openapi/utility-parking.yaml
+  method: POST
+  path: /api/admin/v1/utility-readings/{readingId}/verify
+  operationId: postUtilityReadingsReadingIdVerify
+  command: true
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Verify meter reading for billing
+- file: 04-openapi/utility-parking.yaml
+  method: POST
+  path: /api/admin/v1/utility-readings/{readingId}/correct
+  operationId: postUtilityReadingsReadingIdCorrect
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create corrected reading version
+- file: 04-openapi/utility-parking.yaml
+  method: POST
+  path: /api/admin/v1/utility-tariffs
+  operationId: postUtilityTariffs
+  command: true
+  tenantScoped: true
+  hasRequestBody: false
+  summary: Create utility tariff plan/version
+- file: 04-openapi/utility-parking.yaml
+  method: PUT
+  path: /api/admin/v1/resources/{resourceId}/parking-profile
+  operationId: putResourcesResourceIdParkingProfile
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Create or update parking space profile
+- file: 04-openapi/utility-parking.yaml
+  method: POST
+  path: /api/admin/v1/agreements/{agreementId}/parking-vehicle-bindings
+  operationId: postAgreementsAgreementIdParkingVehicleBindings
+  command: true
+  tenantScoped: true
+  hasRequestBody: true
+  summary: Bind customer vehicle to leased parking space

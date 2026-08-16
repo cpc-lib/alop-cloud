@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ReservationCreated",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateType",
+    "aggregateId",
+    "aggregateVersion",
+    "tenantId",
+    "traceId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eventType": {
+      "const": "asset.reservation.created.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "aggregateType": {
+      "type": "string"
+    },
+    "aggregateId": {
+      "type": "string"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "correlationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "reservationId",
+        "reservationNo",
+        "customerId",
+        "quotationVersionId",
+        "expireAt",
+        "items"
+      ],
+      "properties": {
+        "reservationId": {
+          "type": "integer"
+        },
+        "reservationNo": {
+          "type": "string"
+        },
+        "customerId": {
+          "type": "integer"
+        },
+        "quotationVersionId": {
+          "type": "integer"
+        },
+        "expireAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "resourceUnitId",
+              "offeringId",
+              "startTime",
+              "endTime"
+            ],
+            "properties": {
+              "resourceUnitId": {
+                "type": "integer"
+              },
+              "offeringId": {
+                "type": "integer"
+              },
+              "startTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "endTime": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

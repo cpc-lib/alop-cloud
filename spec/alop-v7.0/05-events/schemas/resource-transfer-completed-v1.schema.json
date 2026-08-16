@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agreement.resource-transfer.completed.v1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "tenantId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "eventType": {
+      "const": "agreement.resource-transfer.completed.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "tenantId": {
+      "type": "integer"
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "transferId",
+        "agreementId",
+        "fromResourceUnitId",
+        "toResourceUnitId"
+      ],
+      "properties": {
+        "transferId": {
+          "type": "integer"
+        },
+        "agreementId": {
+          "type": "integer"
+        },
+        "fromResourceUnitId": {
+          "type": "integer"
+        },
+        "toResourceUnitId": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

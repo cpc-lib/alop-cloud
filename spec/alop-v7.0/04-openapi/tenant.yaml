@@ -1,0 +1,194 @@
+openapi: 3.0.3
+info:
+  title: ALOP Tenant API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/platform/v1/tenants:
+    post:
+      summary: Create tenant
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTenantRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postTenants
+      x-alop-tenant-scoped: false
+      x-alop-command: true
+  /api/platform/v1/tenants/{tenantId}/suspend:
+    post:
+      summary: Suspend tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      parameters:
+      - in: path
+        name: tenantId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      operationId: postTenantsTenantIdSuspend
+      x-alop-tenant-scoped: false
+      x-alop-command: true
+  /api/platform/v1/tenants/{tenantId}/resume:
+    post:
+      summary: Resume tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      parameters:
+      - in: path
+        name: tenantId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      operationId: postTenantsTenantIdResume
+      x-alop-tenant-scoped: false
+      x-alop-command: true
+  /api/platform/v1/tenants/{tenantId}/terminate:
+    post:
+      summary: Terminate tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      parameters:
+      - in: path
+        name: tenantId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      operationId: postTenantsTenantIdTerminate
+      x-alop-tenant-scoped: false
+      x-alop-command: true
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    CreateTenantRequest:
+      type: object
+      required:
+      - tenantCode
+      - tenantName
+      - tenantType
+      - packageCode
+      - adminUserId
+      properties:
+        tenantCode:
+          type: string
+        tenantName:
+          type: string
+        tenantType:
+          type: string
+        packageCode:
+          type: string
+        adminUserId:
+          type: integer
+          format: int64
+        timezone:
+          type: string
+          default: Asia/Shanghai
+        currency:
+          type: string
+          default: CNY
+    ReasonRequest:
+      type: object
+      required:
+      - reason
+      properties:
+        reason:
+          type: string
+          maxLength: 512

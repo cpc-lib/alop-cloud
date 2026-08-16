@@ -1,0 +1,171 @@
+openapi: 3.0.3
+info:
+  title: ALOP Finance Enterprise Extensions API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/security-deposits/{agreementId}:
+    get:
+      operationId: getSecurityDeposit
+      x-alop-tenant-scoped: true
+      parameters:
+      - name: agreementId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses: &id001
+        '200':
+          description: success
+        '400':
+          description: validation/domain error
+        '403':
+          description: forbidden
+        '409':
+          description: conflict
+        '500':
+          description: system error
+  /api/admin/v1/security-deposits/{agreementId}/settle:
+    post:
+      operationId: settleSecurityDeposit
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - name: agreementId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettleDepositRequest'
+      responses: *id001
+  /api/admin/v1/finance/unidentified-collections:
+    get:
+      operationId: listUnidentifiedCollections
+      x-alop-tenant-scoped: true
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: pageNo
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 200
+      responses: *id001
+  /api/admin/v1/finance/unidentified-collections/{id}/claim:
+    post:
+      operationId: claimUnidentifiedCollection
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClaimUnidentifiedCollectionRequest'
+      responses: *id001
+components:
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    SettleDepositRequest:
+      type: object
+      required:
+      - version
+      properties:
+        version:
+          type: integer
+        deductions:
+          type: array
+          items:
+            type: object
+            required:
+            - receivableId
+            - amount
+            properties:
+              receivableId:
+                type: integer
+                format: int64
+              amount:
+                type: number
+                format: double
+        refundRemaining:
+          type: boolean
+          default: true
+        reason:
+          type: string
+    ClaimUnidentifiedCollectionRequest:
+      type: object
+      required:
+      - customerId
+      - claimReason
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        agreementId:
+          type: integer
+          format: int64
+        allocationTargets:
+          type: array
+          items:
+            type: object
+            required:
+            - receivableId
+            - amount
+            properties:
+              receivableId:
+                type: integer
+                format: int64
+              amount:
+                type: number
+        claimReason:
+          type: string
+          maxLength: 512
+        version:
+          type: integer

@@ -1,0 +1,295 @@
+openapi: 3.0.3
+info:
+  title: ALOP Invoice API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/invoice-applications:
+    post:
+      summary: Create invoice application
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvoiceApplicationRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postInvoiceApplications
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/invoice-applications/{applicationId}/submit:
+    post:
+      summary: Submit invoice application
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      parameters:
+      - in: path
+        name: applicationId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      operationId: postInvoiceApplicationsApplicationIdSubmit
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/invoices/{invoiceId}/red-flush:
+    post:
+      summary: Request red flush
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      - in: path
+        name: invoiceId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedFlushRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postInvoicesInvoiceIdRedFlush
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/invoices/{invoiceId}/email-deliveries:
+    post:
+      summary: Send or resend issued invoice by email
+      parameters:
+      - in: path
+        name: invoiceId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceEmailDeliveryRequest'
+      responses:
+        '200':
+          description: accepted
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postInvoicesInvoiceIdEmailDeliveries
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+    get:
+      summary: List invoice email delivery history
+      parameters:
+      - in: path
+        name: invoiceId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: getInvoicesInvoiceIdEmailDeliveries
+      x-alop-tenant-scoped: true
+  /internal/v1/invoice-delivery-instructions/{instructionId}:
+    get:
+      summary: Fetch secure invoice delivery instruction for Notification Service
+      parameters:
+      - in: path
+        name: instructionId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: getInvoiceDeliveryInstructionsInstructionId
+      x-alop-tenant-scoped: true
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    CreateInvoiceApplicationRequest:
+      type: object
+      required:
+      - customerId
+      - invoiceType
+      - title
+      - items
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        invoiceType:
+          type: string
+        title:
+          type: string
+        taxNo:
+          type: string
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+            - allocationId
+            - amount
+            properties:
+              allocationId:
+                type: integer
+                format: int64
+              amount:
+                type: number
+                format: decimal
+        deliveryMode:
+          type: string
+          enum:
+          - NONE
+          - EMAIL_AUTO_AFTER_ISSUE
+        deliveryEmail:
+          type: string
+          format: email
+    InvoiceEmailDeliveryRequest:
+      type: object
+      properties:
+        recipients:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            type: object
+            required:
+            - type
+            - email
+            properties:
+              type:
+                type: string
+                enum:
+                - TO
+                - CC
+                - BCC
+              email:
+                type: string
+                format: email
+              displayName:
+                type: string
+        attachPdf:
+          type: boolean
+          default: true
+        attachOfd:
+          type: boolean
+          default: false
+        templateCode:
+          type: string
+        parentInstructionId:
+          type: integer
+          format: int64
+    RedFlushRequest:
+      type: object
+      required:
+      - amount
+      - reason
+      properties:
+        amount:
+          type: number
+          format: decimal
+        reason:
+          type: string

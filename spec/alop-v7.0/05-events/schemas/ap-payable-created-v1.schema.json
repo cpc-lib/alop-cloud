@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ap.payable.created.v1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "tenantId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "eventType": {
+      "const": "ap.payable.created.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "tenantId": {
+      "type": "integer"
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "payableId",
+        "supplierId",
+        "amount"
+      ],
+      "properties": {
+        "payableId": {
+          "type": "integer"
+        },
+        "supplierId": {
+          "type": "integer"
+        },
+        "amount": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

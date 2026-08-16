@@ -1,0 +1,155 @@
+openapi: 3.0.3
+info:
+  title: ALOP Owner Settlement API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/property-owners:
+    get:
+      operationId: listPropertyOwners
+      x-alop-tenant-scoped: true
+      responses: &id001
+        '200':
+          description: success
+        '400':
+          description: validation/domain error
+        '403':
+          description: forbidden
+        '409':
+          description: conflict
+        '500':
+          description: system error
+    post:
+      operationId: createPropertyOwner
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePropertyOwnerRequest'
+      responses: *id001
+  /api/admin/v1/owner-settlements:
+    get:
+      operationId: listOwnerSettlements
+      x-alop-tenant-scoped: true
+      parameters:
+      - name: ownerId
+        in: query
+        schema:
+          type: integer
+          format: int64
+      - name: status
+        in: query
+        schema:
+          type: string
+      responses: *id001
+    post:
+      operationId: createOwnerSettlement
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOwnerSettlementRequest'
+      responses: *id001
+  /api/admin/v1/owner-settlements/{id}/approve:
+    post:
+      operationId: approveOwnerSettlement
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApproveSettlementRequest'
+      responses: *id001
+components:
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    CreatePropertyOwnerRequest:
+      type: object
+      required:
+      - ownerType
+      - ownerName
+      properties:
+        ownerType:
+          type: string
+          enum:
+          - PERSON
+          - COMPANY
+        ownerName:
+          type: string
+        taxNo:
+          type: string
+    CreateOwnerSettlementRequest:
+      type: object
+      required:
+      - ownerId
+      - periodStart
+      - periodEnd
+      - currency
+      properties:
+        ownerId:
+          type: integer
+          format: int64
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+    ApproveSettlementRequest:
+      type: object
+      required:
+      - version
+      - reason
+      properties:
+        version:
+          type: integer
+        reason:
+          type: string
+          maxLength: 512

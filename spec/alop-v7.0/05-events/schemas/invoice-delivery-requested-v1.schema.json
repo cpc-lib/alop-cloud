@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "invoice.invoice.delivery-requested.v1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateId",
+    "aggregateType",
+    "aggregateVersion",
+    "traceId",
+    "tenantId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "eventType": {
+      "const": "invoice.invoice.delivery-requested.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "aggregateId": {
+      "type": "string"
+    },
+    "tenantId": {
+      "type": "string"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "instructionId",
+        "invoiceId",
+        "applicationId",
+        "deliveryType"
+      ],
+      "properties": {
+        "instructionId": {
+          "type": "integer"
+        },
+        "invoiceId": {
+          "type": "integer"
+        },
+        "applicationId": {
+          "type": "integer"
+        },
+        "deliveryType": {
+          "const": "EMAIL"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "AUTO_AFTER_ISSUE",
+            "MANUAL_RESEND"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "aggregateType": {
+      "type": "string"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "correlationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

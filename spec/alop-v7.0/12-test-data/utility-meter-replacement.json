@@ -1,0 +1,7 @@
+{
+  "meterOld": "E-OLD",
+  "meterNew": "E-NEW",
+  "replacementAt": "2027-02-15T10:00:00+08:00",
+  "expectedUsagePeriods": 2,
+  "rule": "old final reading and new initial reading split period; do not overwrite"
+}

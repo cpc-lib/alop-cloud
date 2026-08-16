@@ -1,0 +1,9 @@
+{
+  "paymentNo": "PAY-V7-000001",
+  "tenantId": 1001,
+  "amount": "100.00",
+  "currency": "CNY",
+  "duplicateDeliveries": 100,
+  "expectedPaymentTransactions": 1,
+  "expectedCollections": 1
+}

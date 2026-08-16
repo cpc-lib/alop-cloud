@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "finance.receivable.due-reminder.v1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateType",
+    "aggregateId",
+    "aggregateVersion",
+    "tenantId",
+    "traceId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eventType": {
+      "const": "finance.receivable.due-reminder.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "aggregateType": {
+      "type": "string"
+    },
+    "aggregateId": {
+      "type": "string"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "correlationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "receivableId",
+        "customerId",
+        "dueDate",
+        "outstandingAmount",
+        "currency",
+        "triggerKey"
+      ],
+      "properties": {
+        "receivableId": {
+          "type": "integer"
+        },
+        "customerId": {
+          "type": "integer"
+        },
+        "dueDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "outstandingAmount": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "triggerKey": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

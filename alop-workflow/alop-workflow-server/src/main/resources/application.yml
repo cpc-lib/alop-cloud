@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-workflow
+server:
+  port: 48104

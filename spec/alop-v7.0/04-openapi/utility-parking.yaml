@@ -1,0 +1,465 @@
+openapi: 3.0.3
+info:
+  title: ALOP Utility, Property Fee & Parking API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/utility-meters:
+    post:
+      summary: Register water/electric meter
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterMeterRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postUtilityMeters
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/utility-meters/{meterId}/bindings:
+    post:
+      summary: Bind meter to asset/space/resource
+      parameters:
+      - in: path
+        name: meterId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BindMeterRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postUtilityMetersMeterIdBindings
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/utility-meters/{meterId}/readings:
+    post:
+      summary: Submit meter reading
+      parameters:
+      - in: path
+        name: meterId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitMeterReadingRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postUtilityMetersMeterIdReadings
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/utility-readings/{readingId}/verify:
+    post:
+      summary: Verify meter reading for billing
+      parameters:
+      - in: path
+        name: readingId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postUtilityReadingsReadingIdVerify
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/utility-readings/{readingId}/correct:
+    post:
+      summary: Create corrected reading version
+      parameters:
+      - in: path
+        name: readingId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CorrectMeterReadingRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postUtilityReadingsReadingIdCorrect
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/utility-tariffs:
+    post:
+      summary: Create utility tariff plan/version
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postUtilityTariffs
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/resources/{resourceId}/parking-profile:
+    put:
+      summary: Create or update parking space profile
+      parameters:
+      - in: path
+        name: resourceId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParkingProfileRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: putResourcesResourceIdParkingProfile
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/agreements/{agreementId}/parking-vehicle-bindings:
+    post:
+      summary: Bind customer vehicle to leased parking space
+      parameters:
+      - in: path
+        name: agreementId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParkingVehicleBindingRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postAgreementsAgreementIdParkingVehicleBindings
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+components:
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+  responses:
+    Success:
+      description: success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    RegisterMeterRequest:
+      type: object
+      required:
+      - meterNo
+      - utilityType
+      - unitCode
+      - meterScope
+      - readingMode
+      properties:
+        meterNo:
+          type: string
+        utilityType:
+          type: string
+          enum:
+          - WATER
+          - ELECTRICITY
+        unitCode:
+          type: string
+          enum:
+          - M3
+          - KWH
+        meterScope:
+          type: string
+          enum:
+          - ASSET
+          - SPACE
+          - RESOURCE
+        readingMode:
+          type: string
+          enum:
+          - MANUAL
+          - AUTO
+          - IMPORT
+        multiplier:
+          type: number
+          format: double
+          minimum: 0
+        serialNo:
+          type: string
+    BindMeterRequest:
+      type: object
+      required:
+      - allocationMethod
+      - effectiveFrom
+      properties:
+        assetId:
+          type: integer
+          format: int64
+        spaceId:
+          type: integer
+          format: int64
+        resourceUnitId:
+          type: integer
+          format: int64
+        allocationMethod:
+          type: string
+          enum:
+          - DIRECT
+          - SUBMETER
+          - AREA_SHARE
+          - FIXED_RATIO
+          - MANUAL
+        allocationRatio:
+          type: number
+        effectiveFrom:
+          type: string
+          format: date-time
+        effectiveTo:
+          type: string
+          format: date-time
+    SubmitMeterReadingRequest:
+      type: object
+      required:
+      - periodStart
+      - periodEnd
+      - previousReading
+      - currentReading
+      - sourceType
+      properties:
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        previousReading:
+          type: number
+        currentReading:
+          type: number
+        sourceType:
+          type: string
+          enum:
+          - MANUAL
+          - AUTO
+          - IMPORT
+          - MOVE_IN
+          - MOVE_OUT
+        evidenceFileId:
+          type: integer
+          format: int64
+        handoverOrderId:
+          type: integer
+          format: int64
+    CorrectMeterReadingRequest:
+      type: object
+      required:
+      - previousReading
+      - currentReading
+      - reason
+      properties:
+        previousReading:
+          type: number
+        currentReading:
+          type: number
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 512
+        evidenceFileId:
+          type: integer
+          format: int64
+    PropertyFeePreviewRequest:
+      type: object
+      required:
+      - calculationType
+      - periodStart
+      - periodEnd
+      properties:
+        calculationType:
+          type: string
+          enum:
+          - PER_AREA_PER_MONTH
+          - FIXED_PERIOD
+          - PER_RESOURCE_PERIOD
+          - PERCENTAGE_OF_RENT
+        chargeableAreaSnapshot:
+          type: number
+        unitPrice:
+          type: number
+        fixedAmount:
+          type: number
+        rentAmount:
+          type: number
+        percentage:
+          type: number
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+    ParkingProfileRequest:
+      type: object
+      required:
+      - parkingNo
+      - parkingType
+      properties:
+        parkingNo:
+          type: string
+        zone:
+          type: string
+        floorNo:
+          type: string
+        parkingType:
+          type: string
+          enum:
+          - STANDARD
+          - MECHANICAL
+          - EV_CHARGING
+          - ACCESSIBLE
+        indoor:
+          type: boolean
+        chargingSupported:
+          type: boolean
+        chargerMeterId:
+          type: integer
+          format: int64
+        vehicleSizeLimit:
+          type: string
+    ParkingVehicleBindingRequest:
+      type: object
+      required:
+      - agreementItemId
+      - parkingResourceId
+      - vehicleId
+      - effectiveFrom
+      properties:
+        agreementItemId:
+          type: integer
+          format: int64
+        parkingResourceId:
+          type: integer
+          format: int64
+        vehicleId:
+          type: integer
+          format: int64
+        effectiveFrom:
+          type: string
+          format: date-time
+        effectiveTo:
+          type: string
+          format: date-time

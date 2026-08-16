@@ -1,0 +1,98 @@
+version: '7.0'
+operations:
+- operation: CreateReservation
+  service: alop-asset
+  localTransaction: resource_schedule_guard(conflict scope) -> reservation
+  lockOrder: resource ids ASC FOR UPDATE
+  idempotency: Idempotency-Key
+  successEvent: ReservationCreated
+- operation: ConfirmReservation
+  service: alop-asset
+  localTransaction: reservation
+  lockOrder: reservation FOR UPDATE + version
+  idempotency: Idempotency-Key
+  successEvent: ReservationConfirmed
+- operation: CommitReservationForAgreement
+  service: alop-asset
+  localTransaction: schedule_guard -> reservation -> occupancy
+  lockOrder: resource ids ASC, reservation FOR UPDATE
+  idempotency: reservationId+agreementId+requestId
+  successEvent: ReservationConverted
+- operation: SignAgreement
+  service: alop-agreement + Saga
+  localTransaction: agreement_sign_process; remote Asset commit
+  lockOrder: agreement row local; remote asset locks guards
+  idempotency: Idempotency-Key + saga request id
+  successEvent: AgreementSigned
+- operation: AllocateCollection
+  service: alop-finance
+  localTransaction: collection -> receivables ASC -> allocations -> ledger
+  lockOrder: collection FOR UPDATE, receivable ids ASC FOR UPDATE
+  idempotency: Idempotency-Key
+  successEvent: AllocationCreated
+- operation: ReverseAllocation
+  service: alop-finance
+  localTransaction: allocation -> collection -> receivable -> reversal -> ledger
+  lockOrder: allocation/collection/receivable FOR UPDATE
+  idempotency: Idempotency-Key
+  successEvent: AllocationReversed
+- operation: CreatePaymentCallbackFact
+  service: alop-payment
+  localTransaction: payment_order -> transaction -> attempt -> outbox
+  lockOrder: payment_order FOR UPDATE
+  idempotency: provider trade unique + event semantics
+  successEvent: PaymentSucceeded
+- operation: ReserveRefundAmount
+  service: alop-finance
+  localTransaction: refund reservation -> target financial facts
+  lockOrder: payment/collection allocation-related rows per Finance policy
+  idempotency: refund request id
+  successEvent: RefundAmountReserved
+- operation: SettleSecurityDeposit
+  service: alop-finance
+  localTransaction: deposit account -> receivables -> tx -> ledger
+  lockOrder: deposit account FOR UPDATE; receivable ids ASC
+  idempotency: Idempotency-Key
+  successEvent: SecurityDepositSettled
+- operation: ReserveInvoiceQuota
+  service: alop-finance
+  localTransaction: allocation invoice quota reservation
+  lockOrder: eligible allocation rows ASC FOR UPDATE
+  idempotency: invoiceApplicationId
+  successEvent: InvoiceQuotaReserved
+- operation: IssueInvoice
+  service: alop-invoice
+  localTransaction: application local state + outbox; provider outside tx
+  lockOrder: application FOR UPDATE for final transition
+  idempotency: provider requestNo + Idempotency-Key
+  successEvent: InvoiceIssued
+- operation: ClaimUnidentifiedCollection
+  service: alop-finance
+  localTransaction: unidentified -> collection -> allocation/advance -> ledger
+  lockOrder: unidentified FOR UPDATE
+  idempotency: Idempotency-Key
+  successEvent: UnidentifiedCollectionClaimed
+- operation: ResourceTransferExecute
+  service: alop-agreement + Asset Saga
+  localTransaction: transfer process + asset target commit + source end
+  lockOrder: target conflict-scope guard ASC
+  idempotency: transfer request id
+  successEvent: ResourceTransferCompleted
+- operation: CreateAPPaymentRequest
+  service: alop-ap
+  localTransaction: payment_request + items
+  lockOrder: payables ids ASC FOR UPDATE
+  idempotency: Idempotency-Key
+  successEvent: PaymentRequestCreated
+- operation: ExecutePayout
+  service: alop-ap
+  localTransaction: payout intent/fact + outbox
+  lockOrder: payment request FOR UPDATE
+  idempotency: provider requestNo
+  successEvent: PayoutSucceeded
+- operation: OwnerSettlementCalculate
+  service: alop-owner-settlement
+  localTransaction: batch + immutable settlement items
+  lockOrder: source eligibility reservation/unique keys
+  idempotency: batch request id
+  successEvent: OwnerSettlementBatchCreated

@@ -1,0 +1,62 @@
+version: '7.0'
+items:
+- useCase: Tenant Create
+  surface: platform
+  key: Idempotency-Key + tenant_create_request_id
+  finalGuard: DB unique
+  retention: long-lived
+- useCase: Reservation Create
+  surface: admin/app
+  key: tenant+user+api+Idempotency-Key
+  finalGuard: DB idempotency_record + business uniqueness
+  retention: 24h + business record
+- useCase: Agreement Sign
+  surface: admin/internal
+  key: Idempotency-Key + signProcess
+  finalGuard: sign process unique
+  retention: business lifetime
+- useCase: Payment Create
+  surface: app
+  key: Idempotency-Key + intentHash
+  finalGuard: payment order uniqueness
+  retention: business lifetime
+- useCase: Payment Callback
+  surface: provider callback
+  key: provider trade no + payment no
+  finalGuard: transaction unique
+  retention: permanent
+- useCase: Refund
+  surface: admin/app
+  key: Idempotency-Key + Finance refund reservation
+  finalGuard: refund no/request unique
+  retention: permanent
+- useCase: Allocation
+  surface: admin/internal
+  key: Idempotency-Key
+  finalGuard: allocation request unique
+  retention: permanent
+- useCase: Invoice Apply
+  surface: admin/app
+  key: Idempotency-Key + quota reservation
+  finalGuard: application no
+  retention: permanent
+- useCase: Invoice Red Flush
+  surface: admin
+  key: Idempotency-Key + provider requestNo
+  finalGuard: red flush request unique
+  retention: permanent
+- useCase: Notification business trigger
+  surface: internal event
+  key: tenant+business+template+trigger+recipient
+  finalGuard: delivery/message unique
+  retention: retention period
+- useCase: Resource Transfer
+  surface: admin
+  key: Idempotency-Key + transferNo
+  finalGuard: transfer no
+  retention: business lifetime
+- useCase: AP Payout
+  surface: admin/provider
+  key: requestNo/provider requestNo
+  finalGuard: payout request unique
+  retention: permanent

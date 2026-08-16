@@ -1,0 +1,350 @@
+tenant:
+  TENANT_CONTEXT_REQUIRED:
+    http: 401
+    retryable: false
+    message: 缺少有效租户上下文
+  TENANT_ACCESS_DENIED:
+    http: 403
+    retryable: false
+    message: 无权访问当前租户
+  TENANT_DISABLED:
+    http: 403
+    retryable: false
+    message: 租户已暂停
+  TENANT_QUOTA_EXCEEDED:
+    http: 409
+    retryable: false
+    message: 租户配额已用尽
+asset:
+  RESOURCE_NOT_FOUND:
+    http: 404
+    retryable: false
+    message: 资源不存在
+  RESOURCE_SOLD:
+    http: 409
+    retryable: false
+    message: 资源已出售
+  RESOURCE_TIME_CONFLICT:
+    http: 409
+    retryable: false
+    message: 资源在所选时间段已被占用
+  RESOURCE_CONFLICT_GROUP_CONFLICT:
+    http: 409
+    retryable: false
+    message: 整租/分租资源存在互斥冲突
+  RESOURCE_AVAILABILITY_BLOCKED:
+    http: 409
+    retryable: false
+    message: 资源在所选时间段不可经营
+  RESOURCE_BUSY:
+    http: 409
+    retryable: true
+    message: 资源正在被其他操作占用
+crm:
+  CUSTOMER_BLACKLISTED:
+    http: 409
+    retryable: false
+    message: 客户处于黑名单
+  QUOTATION_EXPIRED:
+    http: 409
+    retryable: false
+    message: 报价已过期
+  PRICE_BELOW_FLOOR:
+    http: 409
+    retryable: false
+    message: 报价低于最低价格
+agreement:
+  AGREEMENT_INVALID_STATE:
+    http: 409
+    retryable: false
+    message: 合同当前状态不允许该操作
+  AGREEMENT_ALREADY_SIGNED:
+    http: 409
+    retryable: false
+    message: 合同已经签署
+  AGREEMENT_NOT_CLOSABLE:
+    http: 409
+    retryable: false
+    message: 合同尚未完成业务闭环
+payment:
+  PAYMENT_AMOUNT_MISMATCH:
+    http: 409
+    retryable: false
+    message: 支付金额不一致
+  PAYMENT_PROVIDER_UNKNOWN:
+    http: 503
+    retryable: true
+    message: 支付渠道结果未知，必须查询渠道确认
+  REFUND_AMOUNT_EXCEEDED:
+    http: 409
+    retryable: false
+    message: 退款金额超过真实可退金额
+  PAYMENT_NOT_FOUND:
+    http: 404
+    retryable: false
+    message: 支付订单不存在
+  PAYMENT_INVALID_STATE:
+    http: 409
+    retryable: false
+    message: 支付订单当前状态不允许该操作
+  PAYMENT_ACTIVE_ORDER_EXISTS:
+    http: 409
+    retryable: false
+    message: 相同业务已有进行中的支付订单
+  PAYMENT_BUSINESS_ALREADY_PAID_OR_PROCESSING:
+    http: 409
+    retryable: false
+    message: 业务款项已支付或正在处理中
+  PAYMENT_ATTEMPT_ACTIVE_EXISTS:
+    http: 409
+    retryable: false
+    message: 支付订单已有进行中的渠道尝试
+  PAYMENT_ATTEMPT_UNKNOWN:
+    http: 409
+    retryable: false
+    message: 上一渠道结果未知，确认最终结果前禁止重新发起支付
+  PAYMENT_EXPIRED:
+    http: 409
+    retryable: false
+    message: 支付订单已过期
+  PAYMENT_SIGNATURE_INVALID:
+    http: 400
+    retryable: false
+    message: 支付回调签名验证失败
+  PAYMENT_MERCHANT_MISMATCH:
+    http: 409
+    retryable: false
+    message: 支付商户身份不匹配
+  PAYMENT_APP_MISMATCH:
+    http: 409
+    retryable: false
+    message: 支付应用身份不匹配
+  PAYMENT_CURRENCY_MISMATCH:
+    http: 409
+    retryable: false
+    message: 支付币种不一致
+  PAYMENT_CHANNEL_TRADE_CONFLICT:
+    http: 409
+    retryable: false
+    message: 渠道交易号与本地支付订单存在冲突
+  PAYMENT_MERCHANT_CONFIG_NOT_FOUND:
+    http: 409
+    retryable: false
+    message: 未找到有效支付商户配置
+  PAYMENT_MERCHANT_CONFIG_DISABLED:
+    http: 409
+    retryable: false
+    message: 支付商户配置已停用
+  PAYMENT_CLOSE_NOT_ALLOWED:
+    http: 409
+    retryable: false
+    message: 支付订单当前不能关闭
+  PAYMENT_LATE_SUCCESS:
+    http: 409
+    retryable: false
+    message: 支付订单关闭后收到渠道成功结果，已进入晚到成功处理
+  REFUND_INVALID_STATE:
+    http: 409
+    retryable: false
+    message: 退款订单当前状态不允许该操作
+  REFUND_FINANCE_RESERVATION_FAILED:
+    http: 409
+    retryable: false
+    message: 退款资金预占失败
+  REFUND_PROVIDER_UNKNOWN:
+    http: 503
+    retryable: true
+    message: 退款渠道结果未知，必须查询渠道确认
+  REFUND_RESERVATION_EXPIRED:
+    http: 409
+    retryable: false
+    message: 退款资金预占已失效
+finance:
+  COLLECTION_ALLOCATION_EXCEEDED:
+    http: 409
+    retryable: false
+    message: 核销金额超过可用收款
+  RECEIVABLE_ALLOCATION_EXCEEDED:
+    http: 409
+    retryable: false
+    message: 核销金额超过应收余额
+  LEDGER_NOT_BALANCED:
+    http: 500
+    retryable: false
+    message: 会计分录借贷不平
+  RECONCILIATION_MISMATCH:
+    http: 409
+    retryable: false
+    message: 对账结果不一致
+invoice:
+  INVOICE_QUOTA_EXCEEDED:
+    http: 409
+    retryable: false
+    message: 开票金额超过可开票额度
+  INVOICE_PROVIDER_UNKNOWN:
+    http: 503
+    retryable: true
+    message: 开票渠道结果未知，正在查询
+  INVOICE_ALREADY_RED_FLUSHED:
+    http: 409
+    retryable: false
+    message: 发票已经红冲
+  INVOICE_EMAIL_REQUIRED:
+    http: 409
+    retryable: false
+    message: 发票邮件发送缺少有效邮箱
+  INVOICE_EMAIL_DELIVERY_FAILED:
+    http: 503
+    retryable: true
+    message: 发票邮件发送失败，可按规则重试
+  INVOICE_EMAIL_ATTACHMENT_UNAVAILABLE:
+    http: 503
+    retryable: true
+    message: 电子发票附件暂不可用
+  INVOICE_EMAIL_RECIPIENT_NOT_VERIFIED:
+    http: 403
+    retryable: false
+    message: 客户自助发送只能使用已验证邮箱
+common:
+  IDEMPOTENCY_KEY_CONFLICT:
+    http: 409
+    retryable: false
+    message: 幂等键已被不同请求使用
+  OPTIMISTIC_LOCK_CONFLICT:
+    http: 409
+    retryable: true
+    message: 数据已被其他用户修改
+utility:
+  UTILITY_METER_NOT_FOUND:
+    http: 404
+    retryable: false
+    message: 表计不存在
+  UTILITY_METER_BINDING_CONFLICT:
+    http: 409
+    retryable: false
+    message: 表计绑定关系冲突
+  UTILITY_READING_DUPLICATE_PERIOD:
+    http: 409
+    retryable: false
+    message: 该表计期间已存在读数
+  UTILITY_READING_NEGATIVE_USAGE:
+    http: 409
+    retryable: false
+    message: 本期用量不能为负数
+  UTILITY_READING_REVIEW_REQUIRED:
+    http: 409
+    retryable: false
+    message: 表计读数异常，需要复核
+  UTILITY_READING_ALREADY_BILLED:
+    http: 409
+    retryable: false
+    message: 该读数已经出账，必须使用更正流程
+  UTILITY_TARIFF_NOT_EFFECTIVE:
+    http: 409
+    retryable: false
+    message: 水电费率在当前期间无效
+  UTILITY_ALLOCATION_INVALID:
+    http: 409
+    retryable: false
+    message: 共享表计分摊结果无效
+parking:
+  PARKING_PROFILE_REQUIRED:
+    http: 409
+    retryable: false
+    message: 资源缺少有效车位资料
+  PARKING_RESOURCE_CONFLICT:
+    http: 409
+    retryable: false
+    message: 车位在所选时间段已被占用
+  PARKING_VEHICLE_BINDING_CONFLICT:
+    http: 409
+    retryable: false
+    message: 车辆或车位绑定关系冲突
+billing_supplementary:
+  PROPERTY_FEE_BASIS_REQUIRED:
+    http: 409
+    retryable: false
+    message: 物业管理费缺少有效计费基数
+  PROPERTY_FEE_RATE_INVALID:
+    http: 409
+    retryable: false
+    message: 物业管理费费率配置无效
+notification:
+  NOTIFICATION_TEMPLATE_NOT_FOUND:
+    http: 404
+    retryable: false
+    message: 通知模板不存在
+  NOTIFICATION_TEMPLATE_VARIABLE_MISSING:
+    http: 409
+    retryable: false
+    message: 通知模板缺少必要变量
+  NOTIFICATION_RECIPIENT_INVALID:
+    http: 409
+    retryable: false
+    message: 通知收件人信息无效
+  NOTIFICATION_RECIPIENT_SUPPRESSED:
+    http: 409
+    retryable: false
+    message: 该收件地址当前被抑制发送
+  NOTIFICATION_PROVIDER_UNAVAILABLE:
+    http: 503
+    retryable: true
+    message: 通知渠道暂时不可用
+  NOTIFICATION_PROVIDER_UNKNOWN:
+    http: 503
+    retryable: true
+    message: 通知渠道返回结果未知，正在确认
+  NOTIFICATION_DELIVERY_NOT_RETRYABLE:
+    http: 409
+    retryable: false
+    message: 该通知失败类型不允许自动重试
+  NOTIFICATION_RATE_LIMITED:
+    http: 429
+    retryable: true
+    message: 通知发送频率超过限制
+
+agreement_enterprise:
+  AGREEMENT_PARTY_INVALID:
+    http: 409
+    retryable: false
+    message: 合同参与方配置不合法
+  RESOURCE_TRANSFER_TARGET_CONFLICT:
+    http: 409
+    retryable: false
+    message: 换房目标资源不可用
+  RESOURCE_TRANSFER_INVALID_STATE:
+    http: 409
+    retryable: false
+    message: 当前合同状态不允许换房
+finance_enterprise:
+  DEPOSIT_BALANCE_INSUFFICIENT:
+    http: 409
+    retryable: false
+    message: 保证金可用余额不足
+  DEPOSIT_REFUND_IN_PROGRESS:
+    http: 409
+    retryable: false
+    message: 保证金退款处理中
+  UNIDENTIFIED_COLLECTION_ALREADY_CLAIMED:
+    http: 409
+    retryable: false
+    message: 未认领收款已被认领
+tax:
+  TAX_RULE_OVERLAP:
+    http: 409
+    retryable: false
+    message: 税务规则生效区间重叠
+ap:
+  PAYABLE_AMOUNT_EXCEEDED:
+    http: 409
+    retryable: false
+    message: 付款金额超过应付余额
+  PAYOUT_PROVIDER_UNKNOWN:
+    http: 503
+    retryable: true
+    message: 付款渠道结果未知，必须查询确认
+owner_settlement:
+  SETTLEMENT_SOURCE_ALREADY_CONSUMED:
+    http: 409
+    retryable: false
+    message: 结算来源已被其他结算批次使用

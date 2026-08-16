@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "tax.rule.published.v1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "tenantId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "eventType": {
+      "const": "tax.rule.published.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "tenantId": {
+      "type": "integer"
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "taxRuleId",
+        "category",
+        "versionNo"
+      ],
+      "properties": {
+        "taxRuleId": {
+          "type": "integer"
+        },
+        "category": {
+          "type": "string"
+        },
+        "versionNo": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,163 @@
+openapi: 3.0.3
+info:
+  title: ALOP Tax API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/tax/rules:
+    get:
+      operationId: listTaxRules
+      x-alop-tenant-scoped: true
+      parameters:
+      - name: category
+        in: query
+        schema:
+          type: string
+      - name: status
+        in: query
+        schema:
+          type: string
+      responses: &id001
+        '200':
+          description: success
+        '400':
+          description: validation/domain error
+        '403':
+          description: forbidden
+        '409':
+          description: conflict
+        '500':
+          description: system error
+    post:
+      operationId: createTaxRule
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaxRuleRequest'
+      responses: *id001
+  /api/admin/v1/tax/rules/{id}/publish:
+    post:
+      operationId: publishTaxRule
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VersionReasonRequest'
+      responses: *id001
+  /internal/v1/tax/calculate:
+    post:
+      operationId: calculateTax
+      x-alop-tenant-scoped: true
+      x-alop-command: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxCalculationRequest'
+      responses: *id001
+components:
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    CreateTaxRuleRequest:
+      type: object
+      required:
+      - jurisdictionCode
+      - taxCategoryCode
+      - taxMode
+      - taxRate
+      - effectiveFrom
+      properties:
+        jurisdictionCode:
+          type: string
+        taxCategoryCode:
+          type: string
+        taxMode:
+          type: string
+          enum:
+          - TAX_EXCLUSIVE
+          - TAX_INCLUSIVE
+          - NON_TAXABLE
+        taxRate:
+          type: number
+          minimum: 0
+        effectiveFrom:
+          type: string
+          format: date-time
+        effectiveTo:
+          type: string
+          format: date-time
+    VersionReasonRequest:
+      type: object
+      required:
+      - version
+      - reason
+      properties:
+        version:
+          type: integer
+        reason:
+          type: string
+    TaxCalculationRequest:
+      type: object
+      required:
+      - taxCategoryCode
+      - businessTime
+      - amount
+      - currency
+      properties:
+        taxCategoryCode:
+          type: string
+        businessTime:
+          type: string
+          format: date-time
+        amount:
+          type: number
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        amountMode:
+          type: string
+          enum:
+          - NET
+          - GROSS

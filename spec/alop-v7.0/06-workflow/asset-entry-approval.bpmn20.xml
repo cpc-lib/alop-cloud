@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions_asset-entry-approval" targetNamespace="https://alop.example/bpmn">
+  <process id="asset-entry-approval" name="asset-entry-approval" isExecutable="true">
+    <startEvent id="start"/>
+    <userTask id="approver" name="Approver"/>
+    <endEvent id="end"/>
+    <sequenceFlow id="f1" sourceRef="start" targetRef="approver"/>
+    <sequenceFlow id="f2" sourceRef="approver" targetRef="end"/>
+  </process>
+</definitions>

@@ -1,0 +1,180 @@
+{
+  "pages": [
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationBarTitleText": "首页"
+      }
+    },
+    {
+      "path": "pages/resource/list",
+      "style": {
+        "navigationBarTitleText": "房源"
+      }
+    },
+    {
+      "path": "pages/resource/detail",
+      "style": {
+        "navigationBarTitleText": "房源详情"
+      }
+    },
+    {
+      "path": "pages/viewing/create",
+      "style": {
+        "navigationBarTitleText": "预约看房"
+      }
+    },
+    {
+      "path": "pages/viewing/list",
+      "style": {
+        "navigationBarTitleText": "我的看房"
+      }
+    },
+    {
+      "path": "pages/quotation/detail",
+      "style": {
+        "navigationBarTitleText": "报价详情"
+      }
+    },
+    {
+      "path": "pages/reservation/create",
+      "style": {
+        "navigationBarTitleText": "预订"
+      }
+    },
+    {
+      "path": "pages/reservation/list",
+      "style": {
+        "navigationBarTitleText": "我的预订"
+      }
+    },
+    {
+      "path": "pages/agreement/list",
+      "style": {
+        "navigationBarTitleText": "我的合同"
+      }
+    },
+    {
+      "path": "pages/agreement/detail",
+      "style": {
+        "navigationBarTitleText": "合同详情"
+      }
+    },
+    {
+      "path": "pages/agreement/sign",
+      "style": {
+        "navigationBarTitleText": "合同签署"
+      }
+    },
+    {
+      "path": "pages/handover/detail",
+      "style": {
+        "navigationBarTitleText": "交接"
+      }
+    },
+    {
+      "path": "pages/bill/list",
+      "style": {
+        "navigationBarTitleText": "账单"
+      }
+    },
+    {
+      "path": "pages/bill/detail",
+      "style": {
+        "navigationBarTitleText": "账单详情"
+      }
+    },
+    {
+      "path": "pages/payment/cashier",
+      "style": {
+        "navigationBarTitleText": "收银台"
+      }
+    },
+    {
+      "path": "pages/payment/result",
+      "style": {
+        "navigationBarTitleText": "支付结果"
+      }
+    },
+    {
+      "path": "pages/invoice/list",
+      "style": {
+        "navigationBarTitleText": "发票"
+      }
+    },
+    {
+      "path": "pages/invoice/apply",
+      "style": {
+        "navigationBarTitleText": "申请发票"
+      }
+    },
+    {
+      "path": "pages/workorder/list",
+      "style": {
+        "navigationBarTitleText": "工单"
+      }
+    },
+    {
+      "path": "pages/workorder/create",
+      "style": {
+        "navigationBarTitleText": "报修"
+      }
+    },
+    {
+      "path": "pages/workorder/detail",
+      "style": {
+        "navigationBarTitleText": "工单详情"
+      }
+    },
+    {
+      "path": "pages/notification/list",
+      "style": {
+        "navigationBarTitleText": "消息"
+      }
+    },
+    {
+      "path": "pages/mine/index",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/mine/profile",
+      "style": {
+        "navigationBarTitleText": "个人资料"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "ALOP",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F6F7F9"
+  },
+  "tabBar": {
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/resource/list",
+        "text": "房源"
+      },
+      {
+        "pagePath": "pages/notification/list",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的"
+      }
+    ]
+  }
+}

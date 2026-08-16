@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-finance
+server:
+  port: 48112

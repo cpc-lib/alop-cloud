@@ -1,0 +1,910 @@
+openapi: 3.0.3
+info:
+  title: ALOP Payment API
+  version: 7.0.0
+  description: Multi-tenant payment intent, provider attempt, transaction, callback
+    and refund APIs.
+servers:
+- url: /
+tags:
+- name: AppPayment
+- name: AdminPayment
+- name: Refund
+- name: ProviderCallback
+- name: Merchant
+paths:
+  /api/app/v1/payments:
+    post:
+      tags:
+      - AppPayment
+      summary: Create payment order and first provider attempt
+      operationId: createPayment
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+      responses:
+        '200':
+          description: Payment intent created or existing active intent returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponseEnvelope'
+        '409':
+          $ref: '#/components/responses/BusinessConflict'
+        '503':
+          $ref: '#/components/responses/ProviderUnknown'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/app/v1/payments/{paymentNo}:
+    get:
+      tags:
+      - AppPayment
+      summary: Get server-side payment status
+      operationId: getPayment
+      parameters:
+      - in: path
+        name: paymentNo
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/PaymentNo'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponseEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/payments/{paymentNo}/attempts:
+    post:
+      tags:
+      - AppPayment
+      summary: Create another channel attempt for an unpaid order
+      description: Forbidden while any previous attempt is UNKNOWN or the order is
+        already successful/refunded.
+      operationId: createPaymentAttempt
+      parameters:
+      - in: path
+        name: paymentNo
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/PaymentNo'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentAttemptRequest'
+      responses:
+        '200':
+          description: attempt created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentAttemptResponseEnvelope'
+        '409':
+          $ref: '#/components/responses/BusinessConflict'
+        '503':
+          $ref: '#/components/responses/ProviderUnknown'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/payments/{paymentNo}/provider-query:
+    post:
+      tags:
+      - AdminPayment
+      summary: Trigger provider status query
+      description: High-risk support operation; this endpoint never manually marks
+        payment SUCCESS.
+      operationId: queryPaymentProvider
+      parameters:
+      - in: path
+        name: paymentNo
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/PaymentNo'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: query executed/queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponseEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/payments/{paymentNo}/close:
+    post:
+      tags:
+      - AdminPayment
+      summary: Close unpaid payment after provider confirmation
+      operationId: closePayment
+      parameters:
+      - in: path
+        name: paymentNo
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/PaymentNo'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reasonCode:
+                  type: string
+                  maxLength: 64
+                reason:
+                  type: string
+                  maxLength: 512
+      responses:
+        '200':
+          description: closed or already final
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponseEnvelope'
+        '409':
+          $ref: '#/components/responses/BusinessConflict'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/payments/{paymentNo}/transactions:
+    get:
+      tags:
+      - AdminPayment
+      summary: List provider-confirmed payment transactions
+      operationId: listPaymentTransactions
+      parameters:
+      - in: path
+        name: paymentNo
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/PaymentNo'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/PaymentTransactionView'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/admin/v1/payments/{paymentNo}/refunds:
+    post:
+      tags:
+      - Refund
+      summary: Apply for refund
+      description: Finance refundable amount reservation is required before provider
+        execution.
+      operationId: createRefund
+      parameters:
+      - in: path
+        name: paymentNo
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/PaymentNo'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRefundRequest'
+      responses:
+        '200':
+          description: refund created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponseEnvelope'
+        '409':
+          $ref: '#/components/responses/BusinessConflict'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/refunds/{refundNo}:
+    get:
+      tags:
+      - Refund
+      summary: Get refund status
+      operationId: getRefund
+      parameters:
+      - in: path
+        name: refundNo
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/RefundNo'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponseEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/admin/v1/refunds/{refundNo}/provider-query:
+    post:
+      tags:
+      - Refund
+      summary: Query UNKNOWN refund at provider
+      operationId: queryRefundProvider
+      parameters:
+      - in: path
+        name: refundNo
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/RefundNo'
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponseEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/callback/v1/payments/{channel}:
+    post:
+      tags:
+      - ProviderCallback
+      summary: Provider payment callback
+      description: Raw body and provider headers must be preserved for signature verification.
+        tenantId from callback is never trusted.
+      operationId: paymentCallback
+      parameters:
+      - in: path
+        name: channel
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/Channel'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+          application/xml:
+            schema:
+              type: string
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Provider-specific ACK. Adapter renders exact required response.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+            text/plain:
+              schema:
+                type: string
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/callback/v1/refunds/{channel}:
+    post:
+      tags:
+      - ProviderCallback
+      summary: Provider refund callback
+      operationId: refundCallback
+      parameters:
+      - in: path
+        name: channel
+        required: true
+        schema:
+          type: string
+      - $ref: '#/components/parameters/Channel'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+          application/xml:
+            schema:
+              type: string
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Provider-specific ACK
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/payment-merchants:
+    get:
+      tags:
+      - Merchant
+      summary: List tenant payment merchant metadata
+      description: Secret values are never returned.
+      operationId: listPaymentMerchants
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/PaymentMerchantView'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+    post:
+      tags:
+      - Merchant
+      summary: Create payment merchant configuration
+      operationId: createPaymentMerchant
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentMerchantRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+components:
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+    PaymentNo:
+      in: path
+      name: paymentNo
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 64
+    RefundNo:
+      in: path
+      name: refundNo
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 64
+    Channel:
+      in: path
+      name: channel
+      required: true
+      schema:
+        type: string
+        enum:
+        - WECHAT
+        - ALIPAY
+        - UNIONPAY
+  responses:
+    BusinessConflict:
+      description: Domain conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponseBase'
+    ProviderUnknown:
+      description: Provider result is unknown and must be queried, not blindly retried
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponseBase'
+    NotFound:
+      description: Not found or not visible in current tenant
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponseBase'
+  schemas:
+    ApiResponseBase:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+    Money:
+      type: object
+      required:
+      - amount
+      - currency
+      properties:
+        amount:
+          type: string
+          pattern: ^-?\\d+(\\.\\d{1,2})?$
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          example: CNY
+    PaymentBusinessTarget:
+      type: object
+      required:
+      - businessType
+      - businessId
+      properties:
+        businessType:
+          type: string
+          enum:
+          - RECEIVABLE
+          - RESERVATION_DEPOSIT
+          - SECURITY_DEPOSIT
+        businessId:
+          type: integer
+          format: int64
+        expectedAmount:
+          type: string
+          description: Optional client expectation; authoritative amount is recalculated
+            by server.
+    CreatePaymentRequest:
+      type: object
+      required:
+      - targets
+      - paymentMethod
+      properties:
+        targets:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/PaymentBusinessTarget'
+        paymentMethod:
+          type: string
+          enum:
+          - WECHAT_MINI_PROGRAM
+          - WECHAT_JSAPI
+          - WECHAT_NATIVE
+          - WECHAT_H5
+          - WECHAT_APP
+          - ALIPAY_APP
+          - ALIPAY_WAP
+          - ALIPAY_PC
+          - UNIONPAY_APP
+          - UNIONPAY_WEB
+        expectedTotalAmount:
+          type: string
+          description: Client confirmation amount. Server recalculates and rejects
+            mismatch.
+        subject:
+          type: string
+          maxLength: 256
+        returnUrl:
+          type: string
+          maxLength: 1024
+    CreatePaymentAttemptRequest:
+      type: object
+      required:
+      - paymentMethod
+      properties:
+        paymentMethod:
+          type: string
+          enum:
+          - WECHAT_MINI_PROGRAM
+          - WECHAT_JSAPI
+          - WECHAT_NATIVE
+          - WECHAT_H5
+          - WECHAT_APP
+          - ALIPAY_APP
+          - ALIPAY_WAP
+          - ALIPAY_PC
+          - UNIONPAY_APP
+          - UNIONPAY_WEB
+        returnUrl:
+          type: string
+          maxLength: 1024
+    PaymentAttemptView:
+      type: object
+      required:
+      - attemptNo
+      - channel
+      - paymentMethod
+      - status
+      properties:
+        attemptNo:
+          type: string
+        channel:
+          type: string
+        paymentMethod:
+          type: string
+        status:
+          type: string
+          enum:
+          - INITIATED
+          - PREPAY_CREATED
+          - USER_PAYING
+          - SUCCESS
+          - FAILED
+          - UNKNOWN
+          - CLOSED
+          - EXPIRED
+        expireAt:
+          type: string
+          format: date-time
+          nullable: true
+        clientAction:
+          type: object
+          additionalProperties: true
+          description: Provider-specific data for mini-program/app/H5/QR launch. Secrets
+            must never be included.
+    PaymentOrderView:
+      type: object
+      required:
+      - paymentNo
+      - customerId
+      - amount
+      - status
+      - processingState
+      - businessRelations
+      properties:
+        paymentNo:
+          type: string
+        customerId:
+          type: integer
+          format: int64
+        paymentScene:
+          type: string
+        amount:
+          $ref: '#/components/schemas/Money'
+        status:
+          type: string
+          enum:
+          - CREATED
+          - PAYING
+          - SUCCESS
+          - CLOSED
+          - PARTIALLY_REFUNDED
+          - REFUNDED
+        processingState:
+          type: string
+          enum:
+          - NORMAL
+          - UNKNOWN
+        expireAt:
+          type: string
+          format: date-time
+          nullable: true
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+        refundableAmount:
+          $ref: '#/components/schemas/Money'
+        activeAttempt:
+          $ref: '#/components/schemas/PaymentAttemptView'
+        businessRelations:
+          type: array
+          items:
+            type: object
+            properties:
+              businessType:
+                type: string
+              businessId:
+                type: integer
+                format: int64
+              businessNo:
+                type: string
+              expectedAmount:
+                type: string
+    PaymentResponseEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaymentOrderView'
+    PaymentAttemptResponseEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/PaymentAttemptView'
+    PaymentTransactionView:
+      type: object
+      properties:
+        transactionId:
+          type: integer
+          format: int64
+        attemptNo:
+          type: string
+        channel:
+          type: string
+        channelTradeNo:
+          type: string
+        providerStatus:
+          type: string
+        amount:
+          $ref: '#/components/schemas/Money'
+        channelFeeAmount:
+          $ref: '#/components/schemas/Money'
+        successAt:
+          type: string
+          format: date-time
+        statusSource:
+          type: string
+          enum:
+          - CALLBACK
+          - QUERY
+          - RECONCILIATION
+          - LATE_CALLBACK
+    CreateRefundRequest:
+      type: object
+      required:
+      - amount
+      - reasonCode
+      - reason
+      properties:
+        amount:
+          type: string
+          pattern: ^\\d+(\\.\\d{1,2})?$
+        reasonCode:
+          type: string
+          maxLength: 64
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 512
+        allocationIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: Optional explicit financial targets. Finance is authoritative.
+    RefundOrderView:
+      type: object
+      required:
+      - refundNo
+      - paymentNo
+      - refundAmount
+      - status
+      properties:
+        refundNo:
+          type: string
+        paymentNo:
+          type: string
+        refundAmount:
+          $ref: '#/components/schemas/Money'
+        status:
+          type: string
+          enum:
+          - DRAFT
+          - PENDING_APPROVAL
+          - APPROVED
+          - PROCESSING
+          - UNKNOWN
+          - SUCCESS
+          - FAILED
+          - CANCELLED
+        refundReservationId:
+          type: string
+          nullable: true
+        providerRefundNo:
+          type: string
+          nullable: true
+        unknownSince:
+          type: string
+          format: date-time
+          nullable: true
+        succeededAt:
+          type: string
+          format: date-time
+          nullable: true
+    RefundResponseEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/RefundOrderView'
+    PaymentMerchantView:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        channel:
+          type: string
+        merchantMode:
+          type: string
+          enum:
+          - PLATFORM_MERCHANT
+          - TENANT_MERCHANT
+        merchantIdMasked:
+          type: string
+        appId:
+          type: string
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - DISABLED
+        effectiveFrom:
+          type: string
+          format: date-time
+        effectiveTo:
+          type: string
+          format: date-time
+          nullable: true
+    CreatePaymentMerchantRequest:
+      type: object
+      required:
+      - channel
+      - merchantMode
+      - merchantId
+      - credentialRef
+      - effectiveFrom
+      properties:
+        channel:
+          type: string
+          enum:
+          - WECHAT
+          - ALIPAY
+          - UNIONPAY
+        merchantMode:
+          type: string
+          enum:
+          - PLATFORM_MERCHANT
+          - TENANT_MERCHANT
+        merchantId:
+          type: string
+          maxLength: 128
+        appId:
+          type: string
+          maxLength: 128
+        credentialRef:
+          type: string
+          maxLength: 512
+          description: SecretManager reference only
+        certificateRef:
+          type: string
+          maxLength: 512
+        effectiveFrom:
+          type: string
+          format: date-time
+        effectiveTo:
+          type: string
+          format: date-time

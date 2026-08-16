@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-reservation
+server:
+  port: 48106

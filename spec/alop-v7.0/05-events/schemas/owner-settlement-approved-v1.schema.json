@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "owner-settlement.statement.approved.v1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "tenantId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string"
+    },
+    "eventType": {
+      "const": "owner-settlement.statement.approved.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "tenantId": {
+      "type": "integer"
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "settlementBatchId",
+        "ownerId",
+        "payableAmount"
+      ],
+      "properties": {
+        "settlementBatchId": {
+          "type": "integer"
+        },
+        "ownerId": {
+          "type": "integer"
+        },
+        "payableAmount": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-integration
+server:
+  port: 48120

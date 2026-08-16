@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-notification
+server:
+  port: 48116

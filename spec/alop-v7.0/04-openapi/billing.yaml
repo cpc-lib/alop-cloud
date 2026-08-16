@@ -1,0 +1,183 @@
+openapi: 3.0.3
+info:
+  title: ALOP Billing API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/bills/{billId}:
+    get:
+      summary: Get bill
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      parameters:
+      - in: path
+        name: billId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      operationId: getBillsBillId
+      x-alop-tenant-scoped: true
+  /internal/v1/agreements/{agreementId}/billing-rules/materialize:
+    post:
+      summary: Materialize billing rules
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      - in: path
+        name: agreementId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postAgreementsAgreementIdBillingRulesMaterialize
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterializeBillingRulesRequest'
+  /api/admin/v1/billing/utility/preview:
+    post:
+      summary: Preview verified water/electricity charge
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postBillingUtilityPreview
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UtilityPreviewRequest'
+  /api/admin/v1/billing/property-management-fee/preview:
+    post:
+      summary: Preview property management fee
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postBillingPropertyManagementFeePreview
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyFeePreviewRequest'
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    UtilityPreviewRequest:
+      type: object
+      required:
+      - usagePeriodId
+      properties:
+        usagePeriodId:
+          type: integer
+          format: int64
+    PropertyFeePreviewRequest:
+      type: object
+      required:
+      - agreementId
+      - ruleId
+      - periodStart
+      - periodEnd
+      properties:
+        agreementId:
+          type: integer
+          format: int64
+        ruleId:
+          type: integer
+          format: int64
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+    MaterializeBillingRulesRequest:
+      type: object
+      required:
+      - agreementSnapshotVersion
+      properties:
+        agreementSnapshotVersion:
+          type: integer
+        forceRebuild:
+          type: boolean
+          default: false

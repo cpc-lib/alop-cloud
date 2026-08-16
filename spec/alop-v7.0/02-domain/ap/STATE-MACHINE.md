@@ -1,0 +1,12 @@
+# AP State Machines
+
+Payable:
+OPEN -> PARTIALLY_PAID -> PAID
+OPEN/PARTIALLY_PAID -> OVERDUE
+OPEN -> CANCELLED only before irreversible financial effects.
+
+PaymentRequest:
+DRAFT -> PENDING_APPROVAL -> APPROVED -> PROCESSING -> SUCCESS
+PENDING_APPROVAL -> REJECTED
+PROCESSING -> FAILED / UNKNOWN / SUCCESS
+UNKNOWN -> SUCCESS / FAILED after provider query.

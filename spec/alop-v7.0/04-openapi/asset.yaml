@@ -1,0 +1,401 @@
+openapi: 3.0.3
+info:
+  title: ALOP Asset & Reservation API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/assets:
+    post:
+      summary: Create asset
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssetRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postAssets
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/assets/{assetId}/submit:
+    post:
+      summary: Submit asset
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      parameters:
+      - in: path
+        name: assetId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      operationId: postAssetsAssetIdSubmit
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/resources:
+    post:
+      summary: Create resource
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateResourceRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postResources
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/resources/{resourceId}/availability:
+    get:
+      summary: Check availability
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      parameters:
+      - in: path
+        name: resourceId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      operationId: getResourcesResourceIdAvailability
+      x-alop-tenant-scoped: true
+  /api/admin/v1/reservations:
+    post:
+      summary: Create reservation
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReservationRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postReservations
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/reservations/{reservationId}/confirm:
+    post:
+      summary: Confirm reservation
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      - in: path
+        name: reservationId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmReservationRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postReservationsReservationIdConfirm
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /internal/v1/reservations/{reservationId}/commit:
+    post:
+      summary: Commit reservation for agreement
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      - in: path
+        name: reservationId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommitReservationRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postReservationsReservationIdCommit
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/parking-spaces/{resourceId}/availability:
+    get:
+      summary: Check parking space availability using common ScheduleGuard inventory
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      parameters:
+      - in: path
+        name: resourceId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      operationId: getParkingSpacesResourceIdAvailability
+      x-alop-tenant-scoped: true
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+        data: {}
+    CreateAssetRequest:
+      type: object
+      required:
+      - assetCode
+      - assetName
+      - assetType
+      - ownershipType
+      - operationMode
+      properties:
+        assetCode:
+          type: string
+        assetName:
+          type: string
+        assetType:
+          type: string
+        ownershipType:
+          type: string
+        operationMode:
+          type: string
+        address:
+          type: string
+    CreateResourceRequest:
+      type: object
+      required:
+      - assetId
+      - resourceCode
+      - resourceName
+      - resourceType
+      properties:
+        assetId:
+          type: integer
+          format: int64
+        spaceId:
+          type: integer
+          format: int64
+        resourceCode:
+          type: string
+        resourceName:
+          type: string
+        resourceType:
+          type: string
+        rentable:
+          type: boolean
+          default: true
+        sellable:
+          type: boolean
+          default: false
+    ReservationItemRequest:
+      type: object
+      required:
+      - resourceUnitId
+      - offeringId
+      - startTime
+      - endTime
+      properties:
+        resourceUnitId:
+          type: integer
+          format: int64
+        offeringId:
+          type: integer
+          format: int64
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+    CreateReservationRequest:
+      type: object
+      required:
+      - customerId
+      - quotationVersionId
+      - items
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        opportunityId:
+          type: integer
+          format: int64
+        quotationVersionId:
+          type: integer
+          format: int64
+        holdMinutes:
+          type: integer
+          minimum: 1
+          maximum: 10080
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ReservationItemRequest'
+    ConfirmReservationRequest:
+      type: object
+      properties:
+        paymentOrderId:
+          type: integer
+          format: int64
+    CommitReservationRequest:
+      type: object
+      required:
+      - agreementId
+      - requestId
+      properties:
+        agreementId:
+          type: integer
+          format: int64
+        requestId:
+          type: string

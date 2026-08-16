@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-invoice
+server:
+  port: 48113

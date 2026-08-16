@@ -1,0 +1,493 @@
+openapi: 3.0.3
+info:
+  title: ALOP Notification API
+  version: 7.0.0
+servers:
+- url: /
+paths:
+  /api/admin/v1/notification-rules:
+    get:
+      summary: List notification rules
+      responses:
+        '200':
+          description: success
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: getNotificationRules
+      x-alop-tenant-scoped: true
+    post:
+      summary: Create notification rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRuleRequest'
+      responses:
+        '200':
+          description: success
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postNotificationRules
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/notification-templates:
+    post:
+      summary: Create a new versioned notification template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationTemplateRequest'
+      responses:
+        '200':
+          description: success
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postNotificationTemplates
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/notification-templates/{templateCode}/preview:
+    post:
+      summary: Preview rendered SMS/email template
+      parameters:
+      - in: path
+        name: templateCode
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplatePreviewRequest'
+      responses:
+        '200':
+          description: success
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postNotificationTemplatesTemplateCodePreview
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/notification-provider-configs:
+    get:
+      summary: List masked notification provider configurations
+      responses:
+        '200':
+          description: success
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: getNotificationProviderConfigs
+      x-alop-tenant-scoped: true
+    post:
+      summary: Create notification provider configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProviderConfigRequest'
+      responses:
+        '200':
+          description: success
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postNotificationProviderConfigs
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/notification-deliveries:
+    get:
+      summary: List notification deliveries
+      parameters:
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: channel
+        schema:
+          type: string
+      - in: query
+        name: businessType
+        schema:
+          type: string
+      - in: query
+        name: businessId
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: getNotificationDeliveries
+      x-alop-tenant-scoped: true
+  /api/admin/v1/notification-deliveries/{deliveryId}/retry:
+    post:
+      summary: Retry a retryable failed notification delivery
+      parameters:
+      - in: path
+        name: deliveryId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      responses:
+        '200':
+          description: accepted
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postNotificationDeliveriesDeliveryIdRetry
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/notification-preferences/{subjectType}/{subjectId}:
+    get:
+      summary: Get recipient notification preference
+      parameters:
+      - in: path
+        name: subjectType
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: subjectId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: getNotificationPreferencesSubjectTypeSubjectId
+      x-alop-tenant-scoped: true
+    put:
+      summary: Update recipient notification preference
+      parameters:
+      - in: path
+        name: subjectType
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: subjectId
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreferenceRequest'
+      responses:
+        '200':
+          description: success
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: putNotificationPreferencesSubjectTypeSubjectId
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /internal/v1/notifications:
+    post:
+      summary: Create explicit notification request from trusted internal service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InternalNotificationRequest'
+      responses:
+        '200':
+          description: accepted
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postNotifications
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /callbacks/notification/sms/{providerCode}:
+    post:
+      summary: SMS provider delivery receipt callback
+      parameters:
+      - in: path
+        name: providerCode
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: ack
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postNotificationSmsProviderCode
+      x-alop-tenant-scoped: true
+  /callbacks/notification/email/{providerCode}:
+    post:
+      summary: Email provider delivery/bounce callback
+      parameters:
+      - in: path
+        name: providerCode
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: ack
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      operationId: postNotificationEmailProviderCode
+      x-alop-tenant-scoped: true
+components:
+  schemas:
+    NotificationRuleRequest:
+      type: object
+      required:
+      - ruleCode
+      - businessEventType
+      - category
+      - recipientStrategy
+      - channels
+      properties:
+        ruleCode:
+          type: string
+        businessEventType:
+          type: string
+        category:
+          type: string
+          enum:
+          - MARKETING
+          - TRANSACTIONAL
+          - LEGAL
+          - OPERATIONAL
+        recipientStrategy:
+          type: string
+        channels:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum:
+            - IN_APP
+            - SMS
+            - EMAIL
+        fallbackPolicy:
+          type: string
+          enum:
+          - NONE
+          - SMS_THEN_EMAIL
+          - EMAIL_THEN_SMS
+          - PARALLEL_SMS_EMAIL
+        priority:
+          type: integer
+        quietHourPolicy:
+          type: string
+    NotificationTemplateRequest:
+      type: object
+      required:
+      - templateCode
+      - channel
+      - category
+      - bodyTemplate
+      properties:
+        templateCode:
+          type: string
+        channel:
+          type: string
+          enum:
+          - IN_APP
+          - SMS
+          - EMAIL
+        category:
+          type: string
+        subjectTemplate:
+          type: string
+        bodyTemplate:
+          type: string
+        plainTextTemplate:
+          type: string
+        providerTemplateRef:
+          type: string
+        variableSchema:
+          type: object
+          additionalProperties: true
+    TemplatePreviewRequest:
+      type: object
+      required:
+      - channel
+      - variables
+      properties:
+        channel:
+          type: string
+          enum:
+          - SMS
+          - EMAIL
+          - IN_APP
+        variables:
+          type: object
+          additionalProperties: true
+    ProviderConfigRequest:
+      type: object
+      required:
+      - channel
+      - providerMode
+      - providerCode
+      - credentialRef
+      properties:
+        channel:
+          type: string
+          enum:
+          - SMS
+          - EMAIL
+        providerMode:
+          type: string
+          enum:
+          - PLATFORM_PROVIDER
+          - TENANT_PROVIDER
+        providerCode:
+          type: string
+        senderIdentity:
+          type: string
+        credentialRef:
+          type: string
+        callbackSecretRef:
+          type: string
+        config:
+          type: object
+          additionalProperties: true
+    PreferenceRequest:
+      type: object
+      properties:
+        marketingEmailEnabled:
+          type: boolean
+        marketingSmsEnabled:
+          type: boolean
+        transactionalEmailEnabled:
+          type: boolean
+        transactionalSmsEnabled:
+          type: boolean
+        preferredChannel:
+          type: string
+    InternalNotificationRequest:
+      type: object
+      required:
+      - businessType
+      - businessId
+      - ruleCode
+      - triggerKey
+      properties:
+        businessType:
+          type: string
+        businessId:
+          type: integer
+          format: int64
+        ruleCode:
+          type: string
+        triggerKey:
+          type: string
+        explicitRecipientRefId:
+          type: integer
+          format: int64

@@ -1,0 +1,305 @@
+version: '7.0'
+tasks:
+- task: TASK-001
+  title: TASK-001 — Platform Foundation
+  dependsOn: []
+  domains:
+  - platform-integration
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-002
+  title: TASK-002 — Tenant Core
+  dependsOn:
+  - TASK-001
+  domains:
+  - tenant
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-003
+  title: TASK-003 — IAM + Organization
+  dependsOn:
+  - TASK-001
+  - TASK-002
+  domains:
+  - iam-organization
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-004
+  title: TASK-004 — Asset + Resource Hierarchy
+  dependsOn:
+  - TASK-001
+  - TASK-002
+  - TASK-003
+  domains:
+  - asset
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-005
+  title: TASK-005 — ScheduleGuard + Availability
+  dependsOn:
+  - TASK-004
+  domains:
+  - asset
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-006
+  title: TASK-006 — Valuation + Offering + Listing
+  dependsOn:
+  - TASK-004
+  - TASK-005
+  domains:
+  - asset
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-007
+  title: TASK-007 — Reservation
+  dependsOn:
+  - TASK-005
+  - TASK-006
+  domains:
+  - reservation
+  - asset
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-008
+  title: TASK-008 — CRM Core
+  dependsOn:
+  - TASK-001
+  - TASK-002
+  - TASK-003
+  domains:
+  - crm
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-009
+  title: TASK-009 — Viewing + Quotation
+  dependsOn:
+  - TASK-006
+  - TASK-008
+  domains:
+  - crm
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-010
+  title: TASK-010 — Agreement Core
+  dependsOn:
+  - TASK-007
+  - TASK-009
+  domains:
+  - agreement
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-011
+  title: TASK-011 — Flowable Approval
+  dependsOn:
+  - TASK-001
+  - TASK-003
+  domains:
+  - platform-integration
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-012
+  title: TASK-012 — Agreement Sign Saga
+  dependsOn:
+  - TASK-005
+  - TASK-007
+  - TASK-010
+  - TASK-011
+  domains:
+  - agreement
+  - asset
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-013
+  title: TASK-013 — Billing Engine
+  dependsOn:
+  - TASK-010
+  domains:
+  - billing
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-014
+  title: TASK-014 — Finance Core
+  dependsOn:
+  - TASK-013
+  domains:
+  - finance
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-015
+  title: TASK-015 — Payment Domain V6.3
+  dependsOn:
+  - TASK-002
+  - TASK-014
+  domains:
+  - payment
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-016
+  title: TASK-016 — Invoice
+  dependsOn:
+  - TASK-014
+  - TASK-015
+  domains:
+  - invoice
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-017
+  title: TASK-017 — Reconciliation + Dunning
+  dependsOn:
+  - TASK-014
+  - TASK-015
+  - TASK-016
+  domains:
+  - finance
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-018
+  title: TASK-018 — Operations + Handover
+  dependsOn:
+  - TASK-004
+  - TASK-010
+  domains:
+  - operations
+  - agreement
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-019
+  title: TASK-019 — CQRS 360 Read Models
+  dependsOn:
+  - TASK-007
+  - TASK-008
+  - TASK-010
+  - TASK-013
+  - TASK-014
+  - TASK-015
+  - TASK-016
+  - TASK-017
+  - TASK-018
+  domains:
+  - platform-integration
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-020
+  title: TASK-020 — React Admin
+  dependsOn:
+  - TASK-019
+  domains:
+  - frontend-admin
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-021
+  title: TASK-021 — UniApp
+  dependsOn:
+  - TASK-007
+  - TASK-009
+  - TASK-010
+  - TASK-013
+  - TASK-015
+  - TASK-016
+  - TASK-025
+  domains:
+  - miniapp
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-022
+  title: TASK-022 — Tenant Dedicated DB Migration
+  dependsOn:
+  - TASK-002
+  - TASK-023
+  domains:
+  - tenant
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-023
+  title: TASK-023 — Production Hardening
+  dependsOn:
+  - TASK-001
+  - TASK-002
+  - TASK-003
+  - TASK-004
+  - TASK-005
+  - TASK-007
+  - TASK-010
+  - TASK-013
+  - TASK-014
+  - TASK-015
+  - TASK-016
+  - TASK-017
+  - TASK-018
+  - TASK-025
+  domains:
+  - platform-integration
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-024
+  title: TASK-024 — Utilities + Property Management Fee + Parking Leasing
+  dependsOn:
+  - TASK-004
+  - TASK-005
+  - TASK-010
+  - TASK-013
+  - TASK-014
+  domains:
+  - utility-property-parking
+  - asset
+  - billing
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-025
+  title: TASK-025 — Notification Center + Invoice Email Delivery
+  dependsOn:
+  - TASK-001
+  - TASK-002
+  - TASK-003
+  - TASK-016
+  domains:
+  - notification
+  - invoice
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-026
+  title: TASK-026 — Agreement Party
+  dependsOn:
+  - TASK-010
+  domains:
+  - agreement
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-027
+  title: TASK-027 — Security Deposit
+  dependsOn:
+  - TASK-010
+  - TASK-014
+  - TASK-015
+  domains:
+  - finance
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-028
+  title: TASK-028 — Utility Usage Period
+  dependsOn:
+  - TASK-024
+  - TASK-013
+  domains:
+  - utility-property-parking
+  - billing
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-029
+  title: TASK-029 — Unidentified Collection
+  dependsOn:
+  - TASK-014
+  - TASK-017
+  domains:
+  - finance
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-030
+  title: TASK-030 — Resource Transfer
+  dependsOn:
+  - TASK-005
+  - TASK-007
+  - TASK-010
+  - TASK-018
+  domains:
+  - agreement
+  - asset
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-031
+  title: TASK-031 — Tax Domain
+  dependsOn:
+  - TASK-013
+  - TASK-016
+  domains:
+  - tax
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-032
+  title: TASK-032 — Accounts Payable
+  dependsOn:
+  - TASK-003
+  - TASK-014
+  - TASK-031
+  domains:
+  - ap
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md
+- task: TASK-033
+  title: TASK-033 — Owner Settlement
+  dependsOn:
+  - TASK-014
+  - TASK-032
+  domains:
+  - owner-settlement
+  - ap
+  mandatoryMaster: 00-master/MASTER-SPEC-V7.0.md

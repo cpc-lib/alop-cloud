@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: alop-tenant
+server:
+  port: 48100

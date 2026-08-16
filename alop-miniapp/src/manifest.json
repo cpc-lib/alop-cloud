@@ -1,0 +1,15 @@
+{
+  "name": "ALOP用户端",
+  "appid": "__UNI__ALOP",
+  "description": "ALOP-SaaS 房源租赁用户端",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": true
+    },
+    "usingComponents": true
+  }
+}

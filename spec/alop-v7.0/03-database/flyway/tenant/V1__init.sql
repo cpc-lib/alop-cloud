@@ -1,0 +1,15 @@
+CREATE TABLE tenant (
+ id BIGINT PRIMARY KEY, tenant_code VARCHAR(64) NOT NULL, tenant_name VARCHAR(128) NOT NULL,
+ tenant_type VARCHAR(32) NOT NULL, status VARCHAR(32) NOT NULL, package_id BIGINT NULL,
+ isolation_mode VARCHAR(32) NOT NULL DEFAULT 'SHARED_DATABASE_SHARED_SCHEMA', timezone VARCHAR(64) NOT NULL DEFAULT 'Asia/Shanghai',
+ currency CHAR(3) NOT NULL DEFAULT 'CNY', locale VARCHAR(32) NOT NULL DEFAULT 'zh-CN', expires_at DATETIME(3) NULL,
+ created_by BIGINT NULL, created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), updated_by BIGINT NULL, updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), version INT NOT NULL DEFAULT 0,
+ UNIQUE KEY uk_tenant_code(tenant_code), KEY idx_tenant_status(status)
+);
+CREATE TABLE tenant_package (id BIGINT PRIMARY KEY, package_code VARCHAR(64) NOT NULL, package_name VARCHAR(128) NOT NULL, status VARCHAR(32) NOT NULL, capability_json JSON NOT NULL, UNIQUE KEY uk_pkg_code(package_code));
+CREATE TABLE tenant_quota (id BIGINT PRIMARY KEY, tenant_id BIGINT NOT NULL, max_users BIGINT NOT NULL DEFAULT 100, max_assets BIGINT NOT NULL DEFAULT 1000, max_resources BIGINT NOT NULL DEFAULT 10000, max_storage_bytes BIGINT NOT NULL DEFAULT 10737418240, max_monthly_api_calls BIGINT NOT NULL DEFAULT 1000000, version INT NOT NULL DEFAULT 0, UNIQUE KEY uk_quota_tenant(tenant_id));
+CREATE TABLE tenant_config (id BIGINT PRIMARY KEY, tenant_id BIGINT NOT NULL, config_key VARCHAR(128) NOT NULL, config_value TEXT NULL, value_type VARCHAR(32) NOT NULL DEFAULT 'STRING', effective_from DATETIME(3) NOT NULL, effective_to DATETIME(3) NULL, version_no INT NOT NULL, status VARCHAR(32) NOT NULL, UNIQUE KEY uk_tenant_cfg_ver(tenant_id,config_key,version_no), KEY idx_tenant_cfg_active(tenant_id,config_key,status));
+CREATE TABLE tenant_feature (id BIGINT PRIMARY KEY, tenant_id BIGINT NOT NULL, feature_key VARCHAR(128) NOT NULL, enabled TINYINT NOT NULL DEFAULT 0, rollout_percentage INT NOT NULL DEFAULT 100, effective_from DATETIME(3) NULL, effective_to DATETIME(3) NULL, UNIQUE KEY uk_tenant_feature(tenant_id,feature_key));
+CREATE TABLE tenant_route (tenant_id BIGINT PRIMARY KEY, route_type VARCHAR(32) NOT NULL, datasource_key VARCHAR(128) NOT NULL, schema_name VARCHAR(128) NULL, region VARCHAR(64) NULL, storage_namespace VARCHAR(128) NULL, search_namespace VARCHAR(128) NULL, status VARCHAR(32) NOT NULL, route_version BIGINT NOT NULL DEFAULT 0, updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3));
+CREATE TABLE tenant_branding (id BIGINT PRIMARY KEY, tenant_id BIGINT NOT NULL, brand_name VARCHAR(128) NULL, logo_file_id BIGINT NULL, theme_json JSON NULL, custom_domain VARCHAR(255) NULL, UNIQUE KEY uk_brand_tenant(tenant_id), UNIQUE KEY uk_brand_domain(custom_domain));
+CREATE TABLE support_session (id BIGINT PRIMARY KEY, platform_user_id BIGINT NOT NULL, tenant_id BIGINT NOT NULL, reason VARCHAR(512) NOT NULL, permissions_json JSON NOT NULL, approved_by BIGINT NULL, start_time DATETIME(3) NOT NULL, expire_time DATETIME(3) NOT NULL, status VARCHAR(32) NOT NULL, created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), KEY idx_support_tenant(tenant_id,status,expire_time));
