@@ -8,6 +8,8 @@ Dependencies: TASK-005, TASK-006
 - `00-master/MASTER-SPEC-V7.0.md`
 - `00-master/V7-FREEZE-POLICY.md`
 - `01-architecture/architecture-baseline.md`
+- `01-architecture/adr/ADR-002-resource-schedule-guard.md`
+- `01-architecture/adr/ADR-023-reservation-service-boundary.md`
 - `03-database/DDL-CONTRACT.md`
 - `03-database/DATA-DICTIONARY.md`
 - `05-events/event-registry.yaml`
@@ -31,6 +33,9 @@ Dependencies: TASK-005, TASK-006
 - `04-openapi/asset.yaml`
 - `02-domain/asset/DOMAIN-SPEC.md`
 - `02-domain/asset/STATE-MACHINE.md`
+- `08-tests/concurrency.md`
+- `12-test-data/reservation-concurrency.json`
+- `examples/resource-conflict-sql.md`
 
 ## Agent preflight output
 Before generating code, state:

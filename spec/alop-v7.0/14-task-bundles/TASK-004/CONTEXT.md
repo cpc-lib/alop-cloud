@@ -8,6 +8,7 @@ Dependencies: TASK-001, TASK-002, TASK-003
 - `00-master/MASTER-SPEC-V7.0.md`
 - `00-master/V7-FREEZE-POLICY.md`
 - `01-architecture/architecture-baseline.md`
+- `01-architecture/adr/ADR-003-resource-conflict-group.md`
 - `03-database/DDL-CONTRACT.md`
 - `03-database/DATA-DICTIONARY.md`
 - `05-events/event-registry.yaml`
@@ -29,6 +30,7 @@ Dependencies: TASK-001, TASK-002, TASK-003
 - `02-domain/asset/STATE-MACHINE.md`
 - `03-database/flyway/asset/`
 - `04-openapi/asset.yaml`
+- `06-workflow/asset-entry-approval.bpmn20.xml`
 
 ## Agent preflight output
 Before generating code, state:

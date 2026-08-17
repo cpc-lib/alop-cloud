@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "asset.resource.sold.v1",
+  "title": "ResourceSold",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateType",
+    "aggregateId",
+    "aggregateVersion",
+    "tenantId",
+    "traceId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eventType": {
+      "const": "asset.resource.sold.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "aggregateType": {
+      "const": "Asset"
+    },
+    "aggregateId": {
+      "type": "string"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "correlationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "assetId",
+        "assetCode",
+        "resourceUnitId",
+        "soldAt",
+        "listingNo"
+      ],
+      "properties": {
+        "assetId": {
+          "type": "integer"
+        },
+        "assetCode": {
+          "type": "string"
+        },
+        "resourceUnitId": {
+          "type": "integer"
+        },
+        "soldAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "listingNo": {
+          "type": "string"
+        },
+        "buyerCustomerId": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,1527 @@
+openapi: 3.0.3
+info:
+  title: ALOP App Portal API
+  version: 7.0.0
+  description: Customer-facing (UniApp) portal API owned by alop-app-portal. All
+    endpoints are scoped to the authenticated customer and tenant resolved from
+    the WeChat mini-program session.
+servers:
+- url: /
+tags:
+- name: AppAuth
+- name: AppProfile
+- name: AppResource
+- name: AppViewing
+- name: AppQuotation
+- name: AppReservation
+- name: AppAgreement
+- name: AppHandover
+- name: AppBill
+- name: AppInvoice
+- name: AppNotification
+- name: AppWorkOrder
+paths:
+  /api/app/v1/auth/login:
+    post:
+      tags:
+      - AppAuth
+      summary: Login with WeChat mini-program code
+      operationId: appLogin
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WechatLoginRequest'
+      responses:
+        '200':
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppLoginResponseEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/app/v1/me:
+    get:
+      tags:
+      - AppProfile
+      summary: Get current customer profile
+      operationId: getMe
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppProfileEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/me/profile:
+    put:
+      tags:
+      - AppProfile
+      summary: Update current customer profile
+      operationId: updateMe
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAppProfileRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/app/v1/resources:
+    get:
+      tags:
+      - AppResource
+      summary: List rentable resources with paging and filters
+      operationId: listAppResources
+      parameters:
+      - name: resourceType
+        in: query
+        schema:
+          type: string
+      - name: areaMin
+        in: query
+        schema:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+      - name: areaMax
+        in: query
+        schema:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+      - name: priceMin
+        in: query
+        schema:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+      - name: priceMax
+        in: query
+        schema:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+      - name: keyword
+        in: query
+        schema:
+          type: string
+      - name: pageNo
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AppResourceSummaryView'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/resources/{resourceId}:
+    get:
+      tags:
+      - AppResource
+      summary: Get resource detail
+      operationId: getAppResource
+      parameters:
+      - name: resourceId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppResourceDetailEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/viewings:
+    post:
+      tags:
+      - AppViewing
+      summary: Book a viewing appointment
+      operationId: createViewing
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateViewingRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/app/v1/viewings/me:
+    get:
+      tags:
+      - AppViewing
+      summary: List my viewing appointments
+      operationId: listMyViewings
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ViewingView'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/quotations/{quotationId}:
+    get:
+      tags:
+      - AppQuotation
+      summary: Get quotation detail
+      operationId: getQuotation
+      parameters:
+      - name: quotationId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppQuotationEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/reservations:
+    post:
+      tags:
+      - AppReservation
+      summary: Create reservation from accepted quotation
+      operationId: createAppReservation
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppCreateReservationRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppReservationEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/app/v1/reservations/me:
+    get:
+      tags:
+      - AppReservation
+      summary: List my reservations
+      operationId: listMyReservations
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AppReservationView'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/reservations/{reservationId}/cancel:
+    post:
+      tags:
+      - AppReservation
+      summary: Cancel my reservation before confirmation
+      operationId: cancelMyReservation
+      parameters:
+      - name: reservationId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelMyReservationRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/app/v1/agreements/me:
+    get:
+      tags:
+      - AppAgreement
+      summary: List my agreements
+      operationId: listMyAgreements
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AppAgreementSummaryView'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/agreements/{agreementId}:
+    get:
+      tags:
+      - AppAgreement
+      summary: Get my agreement detail
+      operationId: getMyAgreement
+      parameters:
+      - name: agreementId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppAgreementEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/agreements/{agreementId}/sign:
+    post:
+      tags:
+      - AppAgreement
+      summary: Sign my agreement electronically
+      operationId: signMyAgreement
+      parameters:
+      - name: agreementId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppSignAgreementRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/app/v1/handovers/{handoverId}:
+    get:
+      tags:
+      - AppHandover
+      summary: Get handover order detail
+      operationId: getHandover
+      parameters:
+      - name: handoverId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppHandoverEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/bills/me:
+    get:
+      tags:
+      - AppBill
+      summary: List my bills
+      operationId: listMyBills
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AppBillView'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/bills/{billId}:
+    get:
+      tags:
+      - AppBill
+      summary: Get my bill detail
+      operationId: getMyBill
+      parameters:
+      - name: billId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppBillEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/invoices/applications:
+    post:
+      tags:
+      - AppInvoice
+      summary: Apply for an invoice
+      operationId: applyInvoice
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppInvoiceApplicationRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/app/v1/invoices/me:
+    get:
+      tags:
+      - AppInvoice
+      summary: List my invoices
+      operationId: listMyInvoices
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AppInvoiceView'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/notifications/me:
+    get:
+      tags:
+      - AppNotification
+      summary: List my in-app notifications
+      operationId: listMyNotifications
+      parameters:
+      - name: unreadOnly
+        in: query
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AppNotificationView'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/notifications/{notificationId}/read:
+    post:
+      tags:
+      - AppNotification
+      summary: Mark a notification as read
+      operationId: markNotificationRead
+      parameters:
+      - name: notificationId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/app/v1/work-orders:
+    post:
+      tags:
+      - AppWorkOrder
+      summary: Submit a work order request
+      operationId: createWorkOrder
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppCreateWorkOrderRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/app/v1/work-orders/me:
+    get:
+      tags:
+      - AppWorkOrder
+      summary: List my work orders
+      operationId: listMyWorkOrders
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/AppWorkOrderView'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/app/v1/work-orders/{workOrderId}:
+    get:
+      tags:
+      - AppWorkOrder
+      summary: Get my work order detail
+      operationId: getMyWorkOrder
+      parameters:
+      - name: workOrderId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppWorkOrderEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+components:
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+  schemas:
+    ApiResponseBase:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+    WechatLoginRequest:
+      type: object
+      required:
+      - code
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: WeChat mini-program login code (wx.login).
+        encryptedData:
+          type: string
+          description: Optional encrypted phone number payload from getPhoneNumber.
+        iv:
+          type: string
+          description: IV paired with encryptedData.
+        tenantCode:
+          type: string
+    AppLoginResponse:
+      type: object
+      required:
+      - token
+      - tokenType
+      - expiresIn
+      properties:
+        token:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+        refreshToken:
+          type: string
+          nullable: true
+        customerId:
+          type: integer
+          format: int64
+        displayName:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        requiresProfile:
+          type: boolean
+          default: false
+    AppLoginResponseEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AppLoginResponse'
+    AppProfileView:
+      type: object
+      required:
+      - customerId
+      - displayName
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        displayName:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        identityVerified:
+          type: boolean
+          default: false
+    AppProfileEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AppProfileView'
+    UpdateAppProfileRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+          maxLength: 128
+        email:
+          type: string
+          format: email
+        avatarUrl:
+          type: string
+          maxLength: 1024
+    AppResourceSummaryView:
+      type: object
+      required:
+      - resourceId
+      - resourceName
+      - resourceType
+      properties:
+        resourceId:
+          type: integer
+          format: int64
+        resourceName:
+          type: string
+        resourceType:
+          type: string
+        coverImageUrl:
+          type: string
+          nullable: true
+        chargeableArea:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          nullable: true
+        listingPrice:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        available:
+          type: boolean
+    AppResourceDetailView:
+      type: object
+      required:
+      - resourceId
+      - resourceName
+      - resourceType
+      properties:
+        resourceId:
+          type: integer
+          format: int64
+        resourceName:
+          type: string
+        resourceType:
+          type: string
+        description:
+          type: string
+          nullable: true
+        coverImageUrl:
+          type: string
+          nullable: true
+        imageUrls:
+          type: array
+          items:
+            type: string
+        chargeableArea:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          nullable: true
+        listingPrice:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        available:
+          type: boolean
+        attributes:
+          type: object
+          additionalProperties: true
+    AppResourceDetailEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AppResourceDetailView'
+    CreateViewingRequest:
+      type: object
+      required:
+      - resourceId
+      - scheduledAt
+      properties:
+        resourceId:
+          type: integer
+          format: int64
+        scheduledAt:
+          type: string
+          format: date-time
+        name:
+          type: string
+          maxLength: 128
+        phone:
+          type: string
+          maxLength: 32
+        remark:
+          type: string
+          maxLength: 512
+    ViewingView:
+      type: object
+      required:
+      - viewingId
+      - resourceId
+      - scheduledAt
+      - status
+      properties:
+        viewingId:
+          type: integer
+          format: int64
+        resourceId:
+          type: integer
+          format: int64
+        resourceName:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+          - PENDING
+          - CONFIRMED
+          - COMPLETED
+          - CANCELLED
+    AppQuotationItemView:
+      type: object
+      required:
+      - resourceUnitId
+      - startTime
+      - endTime
+      - unitPrice
+      properties:
+        resourceUnitId:
+          type: integer
+          format: int64
+        resourceName:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        unitPrice:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+        subtotal:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+    AppQuotationView:
+      type: object
+      required:
+      - quotationId
+      - versionNo
+      - status
+      - totalAmount
+      - currency
+      - items
+      properties:
+        quotationId:
+          type: integer
+          format: int64
+        versionNo:
+          type: integer
+        status:
+          type: string
+        validUntil:
+          type: string
+          format: date-time
+          nullable: true
+        currency:
+          type: string
+        totalAmount:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppQuotationItemView'
+    AppQuotationEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AppQuotationView'
+    AppCreateReservationRequest:
+      type: object
+      required:
+      - quotationVersionId
+      - items
+      properties:
+        quotationVersionId:
+          type: integer
+          format: int64
+        holdMinutes:
+          type: integer
+          minimum: 1
+          maximum: 10080
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+            - resourceUnitId
+            - startTime
+            - endTime
+            properties:
+              resourceUnitId:
+                type: integer
+                format: int64
+              startTime:
+                type: string
+                format: date-time
+              endTime:
+                type: string
+                format: date-time
+    AppReservationView:
+      type: object
+      required:
+      - reservationId
+      - reservationNo
+      - status
+      properties:
+        reservationId:
+          type: integer
+          format: int64
+        reservationNo:
+          type: string
+        status:
+          type: string
+          enum:
+          - PENDING_PAYMENT
+          - CONFIRMED
+          - CANCELLED
+          - EXPIRED
+          - CONVERTED
+        holdExpireAt:
+          type: string
+          format: date-time
+          nullable: true
+        depositAmount:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppQuotationItemView'
+    AppReservationEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AppReservationView'
+    CancelMyReservationRequest:
+      type: object
+      required:
+      - reason
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 512
+        version:
+          type: integer
+          minimum: 0
+    AppAgreementSummaryView:
+      type: object
+      required:
+      - agreementId
+      - agreementType
+      - status
+      properties:
+        agreementId:
+          type: integer
+          format: int64
+        agreementNo:
+          type: string
+        agreementType:
+          type: string
+        status:
+          type: string
+        startDate:
+          type: string
+          format: date
+          nullable: true
+        endDate:
+          type: string
+          format: date
+          nullable: true
+    AppAgreementView:
+      type: object
+      required:
+      - agreementId
+      - agreementType
+      - status
+      properties:
+        agreementId:
+          type: integer
+          format: int64
+        agreementNo:
+          type: string
+        agreementType:
+          type: string
+        status:
+          type: string
+        startDate:
+          type: string
+          format: date
+          nullable: true
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        totalAmount:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        signedAt:
+          type: string
+          format: date-time
+          nullable: true
+        documentUrl:
+          type: string
+          nullable: true
+    AppAgreementEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AppAgreementView'
+    AppSignAgreementRequest:
+      type: object
+      required:
+      - signMethod
+      properties:
+        signMethod:
+          type: string
+          enum:
+          - ELECTRONIC
+          - OFFLINE
+        signatureProvider:
+          type: string
+        verifierCode:
+          type: string
+          description: SMS or email verification code for electronic signature.
+    AppHandoverView:
+      type: object
+      required:
+      - handoverId
+      - handoverType
+      - status
+      properties:
+        handoverId:
+          type: integer
+          format: int64
+        handoverType:
+          type: string
+          enum:
+          - MOVE_IN
+          - MOVE_OUT
+        status:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        agreementId:
+          type: integer
+          format: int64
+        meterSnapshots:
+          type: array
+          items:
+            type: object
+            properties:
+              utilityType:
+                type: string
+              meterNo:
+                type: string
+              reading:
+                type: string
+                pattern: ^\d+(\.\d{1,4})?$
+    AppHandoverEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AppHandoverView'
+    AppBillView:
+      type: object
+      required:
+      - billId
+      - status
+      - totalAmount
+      - currency
+      properties:
+        billId:
+          type: integer
+          format: int64
+        billNo:
+          type: string
+        billingPeriod:
+          type: string
+        status:
+          type: string
+        totalAmount:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+        paidAmount:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+        outstandingAmount:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+        currency:
+          type: string
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+    AppBillEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AppBillView'
+    AppInvoiceApplicationRequest:
+      type: object
+      required:
+      - invoiceType
+      - title
+      - items
+      properties:
+        invoiceType:
+          type: string
+          enum:
+          - GENERAL
+          - SPECIAL
+          - ELECTRONIC_GENERAL
+          - ELECTRONIC_SPECIAL
+        title:
+          type: string
+          maxLength: 256
+        taxNo:
+          type: string
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+            - billId
+            - amount
+            properties:
+              billId:
+                type: integer
+                format: int64
+              amount:
+                type: string
+                pattern: ^\d+(\.\d{1,2})?$
+        deliveryEmail:
+          type: string
+          format: email
+    AppInvoiceView:
+      type: object
+      required:
+      - invoiceId
+      - status
+      properties:
+        invoiceId:
+          type: integer
+          format: int64
+        invoiceNo:
+          type: string
+          nullable: true
+        invoiceType:
+          type: string
+        title:
+          type: string
+        amount:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+        status:
+          type: string
+        issuedAt:
+          type: string
+          format: date-time
+          nullable: true
+        pdfUrl:
+          type: string
+          nullable: true
+    AppNotificationView:
+      type: object
+      required:
+      - notificationId
+      - title
+      - read
+      properties:
+        notificationId:
+          type: integer
+          format: int64
+        title:
+          type: string
+        body:
+          type: string
+          nullable: true
+        category:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        businessType:
+          type: string
+          nullable: true
+        businessId:
+          type: integer
+          format: int64
+          nullable: true
+    AppCreateWorkOrderRequest:
+      type: object
+      required:
+      - workOrderType
+      - title
+      - description
+      properties:
+        workOrderType:
+          type: string
+          enum:
+          - REPAIR
+          - CLEANING
+          - COMPLAINT
+          - CONSULT
+          - OTHER
+        title:
+          type: string
+          maxLength: 128
+        description:
+          type: string
+          maxLength: 2048
+        resourceId:
+          type: integer
+          format: int64
+        agreementId:
+          type: integer
+          format: int64
+        preferredTime:
+          type: string
+          format: date-time
+        attachmentFileIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+    AppWorkOrderView:
+      type: object
+      required:
+      - workOrderId
+      - status
+      properties:
+        workOrderId:
+          type: integer
+          format: int64
+        workOrderNo:
+          type: string
+        workOrderType:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        assigneeName:
+          type: string
+          nullable: true
+        feedback:
+          type: string
+          nullable: true
+    AppWorkOrderEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/AppWorkOrderView'

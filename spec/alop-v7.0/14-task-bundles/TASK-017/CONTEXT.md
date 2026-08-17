@@ -32,6 +32,8 @@ Dependencies: TASK-014, TASK-015, TASK-016
 - `03-database/flyway/finance/`
 - `04-openapi/finance.yaml`
 - `04-openapi/finance-extensions.yaml`
+- `06-workflow/reconciliation-exception-approval.bpmn20.xml`
+- `09-operations/enterprise-finance-runbook.md`
 
 ## Agent preflight output
 Before generating code, state:

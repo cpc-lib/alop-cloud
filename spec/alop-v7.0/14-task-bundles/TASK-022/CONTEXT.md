@@ -8,6 +8,7 @@ Dependencies: TASK-002, TASK-023
 - `00-master/MASTER-SPEC-V7.0.md`
 - `00-master/V7-FREEZE-POLICY.md`
 - `01-architecture/architecture-baseline.md`
+- `01-architecture/adr/ADR-009-tenant-routing.md`
 - `03-database/DDL-CONTRACT.md`
 - `03-database/DATA-DICTIONARY.md`
 - `05-events/event-registry.yaml`
@@ -29,6 +30,7 @@ Dependencies: TASK-002, TASK-023
 - `02-domain/tenant/STATE-MACHINE.md`
 - `03-database/flyway/tenant/`
 - `04-openapi/tenant.yaml`
+- `08-tests/enterprise-operations-hardening.md`
 
 ## Agent preflight output
 Before generating code, state:

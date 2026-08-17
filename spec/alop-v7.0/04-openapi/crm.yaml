@@ -319,5 +319,5 @@ components:
                 type: string
                 format: date-time
               unitPrice:
-                type: number
-                format: decimal
+                type: string
+                pattern: ^\d+(\.\d{1,2})?$

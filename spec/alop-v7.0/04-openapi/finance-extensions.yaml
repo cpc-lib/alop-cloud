@@ -88,6 +88,86 @@ paths:
             schema:
               $ref: '#/components/schemas/ClaimUnidentifiedCollectionRequest'
       responses: *id001
+  /api/admin/v1/finance/unidentified-collections/{id}/refund:
+    post:
+      operationId: refundUnidentifiedCollection
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundUnidentifiedCollectionRequest'
+      responses: *id001
+  /api/admin/v1/finance/unidentified-collections/{id}/reopen:
+    post:
+      operationId: reopenUnidentifiedCollection
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReopenUnidentifiedCollectionRequest'
+      responses: *id001
+  /api/admin/v1/finance/security-deposits/{id}/deduct:
+    post:
+      operationId: deductSecurityDeposit
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeductSecurityDepositRequest'
+      responses: *id001
+  /api/admin/v1/finance/security-deposits/{id}/refund:
+    post:
+      operationId: refundSecurityDeposit
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundSecurityDepositRequest'
+      responses: *id001
 components:
   parameters:
     IdempotencyKey:
@@ -132,8 +212,8 @@ components:
                 type: integer
                 format: int64
               amount:
-                type: number
-                format: double
+                type: string
+                pattern: ^\d+(\.\d{1,2})?$
         refundRemaining:
           type: boolean
           default: true
@@ -163,8 +243,69 @@ components:
                 type: integer
                 format: int64
               amount:
-                type: number
+                type: string
+                pattern: ^\d+(\.\d{1,2})?$
         claimReason:
+          type: string
+          maxLength: 512
+        version:
+          type: integer
+    RefundUnidentifiedCollectionRequest:
+      type: object
+      required:
+      - amount
+      - reason
+      - version
+      properties:
+        amount:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+        reason:
+          type: string
+          maxLength: 512
+        version:
+          type: integer
+    ReopenUnidentifiedCollectionRequest:
+      type: object
+      required:
+      - reason
+      - version
+      properties:
+        reason:
+          type: string
+          maxLength: 512
+        version:
+          type: integer
+    DeductSecurityDepositRequest:
+      type: object
+      required:
+      - receivableId
+      - amount
+      - reason
+      - version
+      properties:
+        receivableId:
+          type: integer
+          format: int64
+        amount:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+        reason:
+          type: string
+          maxLength: 512
+        version:
+          type: integer
+    RefundSecurityDepositRequest:
+      type: object
+      required:
+      - amount
+      - reason
+      - version
+      properties:
+        amount:
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
+        reason:
           type: string
           maxLength: 512
         version:

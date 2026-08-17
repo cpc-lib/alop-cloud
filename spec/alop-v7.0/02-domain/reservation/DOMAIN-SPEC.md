@@ -1,7 +1,7 @@
 # RESERVATION DOMAIN SPEC
 
 ## 1. Bounded Context / Service
-`alop-asset`
+`alop-reservation`（独立微服务，独立库 `alop_reservation`；与 alop-asset 平级。归属与库拆分依据见 ADR-023）
 
 ## 2. Aggregate Roots
 - `Reservation`
@@ -12,6 +12,8 @@
 - `resource_schedule_guard`
 - `resource_occupancy`
 - `resource_availability`
+
+`resource_conflict_group` / `resource_conflict_group_member` 留在 `alop_asset` 库由 alop-asset 维护，本服务不直接读写，仅通过事件订阅维护本地只读投影（详见 §9）。
 
 ## 4. Commands
 - `CreateReservation`
@@ -45,6 +47,9 @@
 
 ## 9. Transaction / Locking
 - `Redis optional then ScheduleGuard sorted FOR UPDATE`
+- `resource_schedule_guard` 物理表位于本服务库 `alop_reservation`，Reservation/Occupancy/Availability 任何排期变更必须在本服务本地事务内按 `resourceId` 升序 `SELECT ... FOR UPDATE` 锁定目标 `resource_schedule_guard` 行后提交（ADR-002 / ADR-023）。本地事务闭环不依赖跨服务调用 alop-asset。
+- `resource_conflict_group` 留在 `alop-asset` 库，本服务不直接读写。本服务订阅 `asset.conflict-group.*` 事件（创建/成员变更/状态切换/解散）在本地维护只读投影（投影表或缓存）用于冲突预检。投影存在最终一致性窗口，因此严格冲突裁决（CommitReservation 时）必须回查 asset 提供的内部 API 或提交 conflict 检查事件，不得只依赖本地投影做权威判断。
+- 跨服务的 ConflictGroup 投影同步走 Outbox + Inbox 幂等消费，保证事件至少一次投递且本服务侧不重复应用。
 
 ## 10. Idempotency
 - `Idempotency-Key`

@@ -26,18 +26,25 @@ ALOP-SaaS 是多租户企业级房源资产经营、招商 CRM、出租/销售�
 ## 5. 服务边界
 - `alop-tenant`：Tenant 生命周期、套餐、Quota、Feature、Config、Route、迁移元数据。
 - `alop-iam`：全局用户、租户 Membership、角色权限、认证、DataScope 定义。
-- `alop-organization`：组织树、团队、资源责任关系、ACL。
-- `alop-asset`：Asset/Space/ResourceUnit/ConflictGroup/Valuation/Offering/Listing/Availability/Reservation/Occupancy/Renovation/Maintenance，以及水电表计、抄表事实和 ParkingSpaceProfile。
+- `alop-organization`：组织树、团队、资源责任关系、ACL、OwnershipHistory。
+- `alop-asset`：Asset/Space/ResourceUnit/ConflictGroup/Valuation/Offering/Listing/Renovation/Maintenance，以及水电表计、抄表事实和 ParkingSpaceProfile（Reservation/Occupancy/Availability 已迁出，详见 ADR-023）。
+- `alop-reservation`：Reservation/ReservationItem/ScheduleGuard/ResourceOccupancy/ResourceAvailability，本地维护 conflict_group 只读投影参与冲突预检。
 - `alop-crm`：Lead/Customer/Opportunity/Viewing/Quotation/Activity/Task。
 - `alop-workflow`：Flowable 适配、流程定义、业务流程关系、任务查询。
 - `alop-agreement`：Agreement/Item/Snapshot/Change/RenewalPriority/Handover/Signature/Sign Saga。
 - `alop-billing`：BillingRule/BillingPlan/Bill/BillItem，以及水电费率、物业管理费、停车费计算。
+- `alop-tax`：TaxCategory/TaxRule、计税与税快照。
 - `alop-payment`：PaymentOrder/PaymentTransaction/Refund/Provider Adapter/Callback。
 - `alop-finance`：Receivable/Adjustment/Collection/Allocation/Reversal/Advance/Ledger/Reconciliation/Dunning/InvoiceQuota。
 - `alop-invoice`：InvoiceApplication/Invoice/Relation/RedFlush/NuoNuo Adapter。
+- `alop-ap`：Supplier/Payable/PaymentRequest/Payout。
+- `alop-owner-settlement`：SettlementRule/OwnerSettlementBatch/OwnerStatement/OwnerPayable。
 - `alop-notification`：模板、收件人、偏好、重试、去重。
+- `alop-operations`：OperationWorkOrder/SLA/Handover 投影集成。
 - `alop-search`：ES Search Read Model、重建、版本控制。
 - `alop-file`：MinIO、文件元数据、病毒扫描、PreSigned URL、存储额度。
+- `alop-infra`：Audit/Config/IntegrationTask/SecretRef/JobMeta 等平台基础设施。
+- `alop-integration`：Provider/Webhook/CredentialMetadata 等外部集成元数据。
 
 ## 6. 关键不变量
 ### 6.1 房源库存

@@ -1,6 +1,45 @@
-# State Machine Catalog — V7.0
+# State Machine Catalog - V7.0
 
-Canonical machine-readable source: `11-codegen/state-machines.yaml`.
+Canonical machine-readable source: `11-codegen/state-machines.yaml` (frozen codegen contract). This catalog is its human-readable mirror; on conflict the yaml wins. Any machine change requires an ADR and must update the yaml, this catalog, and the owning domain's STATE-MACHINE.md together.
+
+Total machines: **34**
+
+| # | Machine | Domain | Canonical source |
+|---|---|---|---|
+| 1 | Tenant | tenant | `11-codegen/state-machines.yaml` |
+| 2 | Asset | asset | `11-codegen/state-machines.yaml` |
+| 3 | Reservation | asset | `11-codegen/state-machines.yaml` |
+| 4 | Lead | crm | `11-codegen/state-machines.yaml` |
+| 5 | Opportunity | crm | `11-codegen/state-machines.yaml` |
+| 6 | Viewing | crm | `11-codegen/state-machines.yaml` |
+| 7 | QuotationVersion | crm | `11-codegen/state-machines.yaml` |
+| 8 | Agreement | agreement | `11-codegen/state-machines.yaml` |
+| 9 | Receivable | finance | `11-codegen/state-machines.yaml` |
+| 10 | PaymentOrder | payment | `11-codegen/state-machines.yaml` |
+| 11 | PaymentAttempt | payment | `11-codegen/state-machines.yaml` |
+| 12 | RefundOrder | payment | `11-codegen/state-machines.yaml` |
+| 13 | InvoiceApplication | invoice | `11-codegen/state-machines.yaml` |
+| 14 | RedFlushApplication | invoice | `11-codegen/state-machines.yaml` |
+| 15 | InvoiceDeliveryInstruction | invoice | `11-codegen/state-machines.yaml` |
+| 16 | SecurityDepositAccount | finance | `11-codegen/state-machines.yaml` |
+| 17 | UnidentifiedCollection | finance | `11-codegen/state-machines.yaml` |
+| 18 | DunningCase | finance | `11-codegen/state-machines.yaml` |
+| 19 | ResourceTransfer | agreement | `11-codegen/state-machines.yaml` |
+| 20 | TaxRule | tax | `11-codegen/state-machines.yaml` |
+| 21 | Payable | ap | `11-codegen/state-machines.yaml` |
+| 22 | OwnerSettlementBatch | owner-settlement | `11-codegen/state-machines.yaml` |
+| 23 | BillingPlan | billing | `11-codegen/state-machines.yaml` |
+| 24 | UtilityUsagePeriod | billing | `11-codegen/state-machines.yaml` |
+| 25 | MeterReading | utility-property-parking | `11-codegen/state-machines.yaml` |
+| 26 | ParkingVehicleBinding | utility-property-parking | `11-codegen/state-machines.yaml` |
+| 27 | OperationWorkOrder | operations | `11-codegen/state-machines.yaml` |
+| 28 | RenovationOrder | operations | `11-codegen/state-machines.yaml` |
+| 29 | IntegrationTask | platform | `11-codegen/state-machines.yaml` |
+| 30 | TenantMembership | tenant | `11-codegen/state-machines.yaml` |
+| 31 | Customer | crm | `11-codegen/state-machines.yaml` |
+| 32 | HandoverOrder | operations | `11-codegen/state-machines.yaml` |
+| 33 | NotificationMessage | notification | `11-codegen/state-machines.yaml` |
+| 34 | NotificationDelivery | notification | `11-codegen/state-machines.yaml` |
 
 ## Tenant
 
@@ -144,13 +183,17 @@ Initial: `CREATED`
 | Current | Command/Event | Target |
 |---|---|---|
 | `CREATED` | `startPaying` | `PAYING` |
-| `PAYING` | `succeed` | `SUCCESS` |
+| `PAYING` | `verifiedCallback` | `SUCCESS` |
 | `PAYING` | `failFinal` | `FAILED` |
 | `CREATED` | `close` | `CLOSED` |
-| `PAYING` | `closeIfProviderSafe` | `CLOSED` |
+| `PAYING` | `close` | `CLOSED` |
+| `CLOSED` | `recordLateSuccess` | `SUCCESS` |
 | `SUCCESS` | `partialRefund` | `PARTIALLY_REFUNDED` |
+| `PARTIALLY_REFUNDED` | `partialRefund` | `PARTIALLY_REFUNDED` |
 | `SUCCESS` | `fullRefund` | `REFUNDED` |
 | `PARTIALLY_REFUNDED` | `fullRefund` | `REFUNDED` |
+
+Notes: no order-level UNKNOWN (uncertainty lives on PaymentAttempt/RefundOrder; read model reports `processingState=UNKNOWN` while order stays PAYING). `CLOSED -> SUCCESS` only via dedicated `recordLateSuccess` (MASTER-SPEC §17.6). SUCCESS/PARTIALLY_REFUNDED/REFUNDED never create new payment attempts.
 
 ## PaymentAttempt
 
@@ -161,11 +204,49 @@ Initial: `INITIATED`
 | `INITIATED` | `prepayCreated` | `PREPAY_CREATED` |
 | `INITIATED` | `providerFail` | `FAILED` |
 | `INITIATED` | `uncertain` | `UNKNOWN` |
-| `PREPAY_CREATED` | `paid` | `SUCCESS` |
-| `PREPAY_CREATED` | `expireOrClose` | `CLOSED` |
+| `INITIATED` | `expire` | `EXPIRED` |
+| `INITIATED` | `close` | `CLOSED` |
+| `PREPAY_CREATED` | `clientLaunched` | `USER_PAYING` |
+| `PREPAY_CREATED` | `providerFail` | `FAILED` |
+| `PREPAY_CREATED` | `uncertain` | `UNKNOWN` |
+| `PREPAY_CREATED` | `expire` | `EXPIRED` |
+| `PREPAY_CREATED` | `close` | `CLOSED` |
+| `USER_PAYING` | `paidCallback` | `SUCCESS` |
+| `USER_PAYING` | `querySuccess` | `SUCCESS` |
+| `USER_PAYING` | `queryFail` | `FAILED` |
+| `USER_PAYING` | `queryUncertain` | `UNKNOWN` |
+| `USER_PAYING` | `expire` | `EXPIRED` |
+| `USER_PAYING` | `close` | `CLOSED` |
+| `UNKNOWN` | `callbackSuccess` | `SUCCESS` |
 | `UNKNOWN` | `querySuccess` | `SUCCESS` |
 | `UNKNOWN` | `queryFail` | `FAILED` |
 | `UNKNOWN` | `queryClosed` | `CLOSED` |
+| `UNKNOWN` | `queryUncertain` | `UNKNOWN` |
+
+Notes: at most one active `PREPAY_CREATED/USER_PAYING/UNKNOWN` attempt per PaymentOrder; UNKNOWN blocks new attempts and channel switching.
+
+## RefundOrder
+
+Initial: `DRAFT`
+
+| Current | Command/Event | Target |
+|---|---|---|
+| `DRAFT` | `submit` | `PENDING_APPROVAL` |
+| `DRAFT` | `submitPreApproved` | `APPROVED` |
+| `PENDING_APPROVAL` | `approve` | `APPROVED` |
+| `PENDING_APPROVAL` | `reject` | `CANCELLED` |
+| `APPROVED` | `sendProvider` | `PROCESSING` |
+| `PROCESSING` | `providerSuccess` | `SUCCESS` |
+| `PROCESSING` | `providerFail` | `FAILED` |
+| `PROCESSING` | `providerUncertain` | `UNKNOWN` |
+| `UNKNOWN` | `callbackSuccess` | `SUCCESS` |
+| `UNKNOWN` | `querySuccess` | `SUCCESS` |
+| `UNKNOWN` | `queryFail` | `FAILED` |
+| `UNKNOWN` | `queryUncertain` | `UNKNOWN` |
+| `DRAFT` | `cancel` | `CANCELLED` |
+| `APPROVED` | `cancel` | `CANCELLED` |
+
+Notes: UNKNOWN never releases the Finance refund reservation; FAILED/CANCELLED release it idempotently; SUCCESS confirms it exactly once and is terminal (corrections are separate accounting operations).
 
 ## InvoiceApplication
 
@@ -173,17 +254,47 @@ Initial: `DRAFT`
 
 | Current | Command/Event | Target |
 |---|---|---|
-| `DRAFT` | `submit` | `PENDING_APPROVAL` |
-| `PENDING_APPROVAL` | `approve` | `APPROVED` |
-| `APPROVED` | `requestProvider` | `WAITING_PROVIDER` |
-| `WAITING_PROVIDER` | `submitted` | `SUBMITTED` |
-| `SUBMITTED` | `processing` | `PROCESSING` |
-| `PROCESSING` | `issue` | `SUCCESS` |
-| `PROCESSING` | `fail` | `FAILED` |
-| `WAITING_PROVIDER` | `uncertain` | `UNKNOWN` |
-| `PROCESSING` | `uncertain` | `UNKNOWN` |
-| `UNKNOWN` | `querySuccess` | `SUCCESS` |
+| `DRAFT` | `submit` | `SUBMITTED` |
+| `SUBMITTED` | `approve` | `APPROVED` |
+| `APPROVED` | `requestProvider` | `ISSUING` |
+| `ISSUING` | `providerSuccess` | `ISSUED` |
+| `ISSUING` | `providerFail` | `FAILED` |
+| `ISSUING` | `providerUncertain` | `UNKNOWN` |
+| `UNKNOWN` | `querySuccess` | `ISSUED` |
 | `UNKNOWN` | `queryFail` | `FAILED` |
+
+## RedFlushApplication
+
+Initial: `DRAFT`
+
+| Current | Command/Event | Target |
+|---|---|---|
+| `DRAFT` | `submit` | `RED_FLUSHING` |
+| `RED_FLUSHING` | `providerSuccess` | `RED_FLUSHED` |
+| `RED_FLUSHING` | `providerFail` | `FAILED` |
+| `RED_FLUSHING` | `providerUncertain` | `UNKNOWN` |
+| `UNKNOWN` | `querySuccess` | `RED_FLUSHED` |
+| `UNKNOWN` | `queryFail` | `FAILED` |
+
+Notes: standalone aggregate (`invoice_red_flush_application`); red flush creates a new red invoice relation, the original Invoice stays immutable and `ISSUED`.
+
+## InvoiceDeliveryInstruction
+
+Initial: `CREATED`
+
+| Current | Command/Event | Target |
+|---|---|---|
+| `CREATED` | `queue` | `QUEUED` |
+| `QUEUED` | `start` | `SENDING` |
+| `SENDING` | `markSent` | `SENT` |
+| `SENDING` | `markPartiallySent` | `PARTIALLY_SENT` |
+| `CREATED` | `failFinal` | `FAILED` |
+| `QUEUED` | `failFinal` | `FAILED` |
+| `SENDING` | `failFinal` | `FAILED` |
+| `CREATED` | `cancel` | `CANCELLED` |
+| `QUEUED` | `cancel` | `CANCELLED` |
+
+Notes: independent from InvoiceApplication; email failure never reverts `Invoice.status=ISSUED`.
 
 ## SecurityDepositAccount
 
@@ -216,6 +327,23 @@ Initial: `OPEN`
 | `CLAIMED` | `close` | `CLOSED` |
 | `REFUNDED` | `close` | `CLOSED` |
 
+## DunningCase
+
+Initial: `OPEN`
+
+| Current | Command/Event | Target |
+|---|---|---|
+| `OPEN` | `promiseToPay` | `PROMISED` |
+| `PROMISED` | `markKept` | `KEPT` |
+| `PROMISED` | `markBroken` | `BROKEN` |
+| `BROKEN` | `reopen` | `OPEN` |
+| `OPEN` | `close` | `CLOSED` |
+| `PROMISED` | `close` | `CLOSED` |
+| `KEPT` | `close` | `CLOSED` |
+| `BROKEN` | `close` | `CLOSED` |
+
+Notes: escalation levels (D+1/D+3/D+7/D+15/D+30...) are an `escalationLevel` field, never states; `close` covers settled-out and bad-debt closure.
+
 ## ResourceTransfer
 
 Initial: `DRAFT`
@@ -231,6 +359,13 @@ Initial: `DRAFT`
 | `SCHEDULED` | `execute` | `EXECUTING` |
 | `EXECUTING` | `complete` | `COMPLETED` |
 | `EXECUTING` | `fail` | `FAILED` |
+| `DRAFT` | `cancel` | `CANCELLED` |
+| `QUOTED` | `cancel` | `CANCELLED` |
+| `TARGET_HELD` | `cancel` | `CANCELLED` |
+| `PENDING_APPROVAL` | `cancel` | `CANCELLED` |
+| `APPROVED` | `cancel` | `CANCELLED` |
+
+Notes: cancellation is allowed only before supplementary signing; post-scheduling aborts go through the persisted saga/compensation path.
 
 ## TaxRule
 
@@ -256,6 +391,12 @@ Initial: `OPEN`
 | `PARTIALLY_PAID` | `pay` | `PAID` |
 | `OPEN` | `overdue` | `OVERDUE` |
 | `PARTIALLY_PAID` | `overdue` | `OVERDUE` |
+| `OVERDUE` | `settle` | `PAID` |
+| `OPEN` | `cancel` | `CANCELLED` |
+| `OPEN` | `writeOff` | `WRITTEN_OFF` |
+| `OVERDUE` | `writeOff` | `WRITTEN_OFF` |
+
+Notes: `cancel` only before irreversible financial effects.
 
 ## OwnerSettlementBatch
 
@@ -267,10 +408,17 @@ Initial: `DRAFT`
 | `CALCULATED` | `review` | `REVIEWING` |
 | `REVIEWING` | `approve` | `APPROVED` |
 | `REVIEWING` | `reject` | `REJECTED` |
+| `REJECTED` | `revise` | `DRAFT` |
 | `APPROVED` | `createPayable` | `PAYABLE_CREATED` |
+| `APPROVED` | `cancel` | `CANCELLED` |
 | `PAYABLE_CREATED` | `pay` | `PAYING` |
 | `PAYING` | `paid` | `PAID` |
+| `PAYING` | `uncertain` | `UNKNOWN` |
+| `UNKNOWN` | `querySuccess` | `PAID` |
+| `UNKNOWN` | `queryFail` | `FAILED` |
 | `PAID` | `close` | `CLOSED` |
+
+Notes: `APPROVED -> CANCELLED` only before payable creation, with audit. CLOSED batches are never edited (architecture red line).
 
 ## BillingPlan
 
@@ -296,6 +444,35 @@ Initial: `DRAFT`
 | `VERIFIED` | `bill` | `BILLED` |
 | `BILLED` | `correct` | `CORRECTED` |
 | `DRAFT` | `cancel` | `CANCELLED` |
+
+## MeterReading
+
+Initial: `DRAFT`
+
+| Current | Command/Event | Target |
+|---|---|---|
+| `DRAFT` | `submit` | `SUBMITTED` |
+| `SUBMITTED` | `autoValidateOk` | `VERIFIED` |
+| `SUBMITTED` | `anomalyFound` | `REVIEW_REQUIRED` |
+| `REVIEW_REQUIRED` | `approve` | `VERIFIED` |
+| `REVIEW_REQUIRED` | `reject` | `REJECTED` |
+| `VERIFIED` | `markBilled` | `BILLED` |
+| `VERIFIED` | `correct` | `CORRECTED` |
+| `BILLED` | `correct` | `CORRECTED` |
+
+Notes: `BILLED` is historical fact; correction closes the old version as `CORRECTED` and creates a new `DRAFT` version; only VERIFIED/BILLED readings drive billing.
+
+## ParkingVehicleBinding
+
+Initial: `PENDING`
+
+| Current | Command/Event | Target |
+|---|---|---|
+| `PENDING` | `activate` | `ACTIVE` |
+| `ACTIVE` | `end` | `ENDED` |
+| `ACTIVE` | `cancel` | `CANCELLED` |
+
+Notes: changing vehicle = end old ACTIVE binding + create a new binding; no in-place overwrite of historical plate association.
 
 ## OperationWorkOrder
 
@@ -376,3 +553,34 @@ Initial: `DRAFT`
 | `DRAFT` | `cancel` | `CANCELLED` |
 | `IN_PROGRESS` | `cancelBeforeFinal` | `CANCELLED` |
 
+## NotificationMessage
+
+Initial: `CREATED`
+
+| Current | Command/Event | Target |
+|---|---|---|
+| `CREATED` | `queue` | `QUEUED` |
+| `QUEUED` | `start` | `PROCESSING` |
+| `PROCESSING` | `completeAll` | `COMPLETED` |
+| `PROCESSING` | `completePartial` | `PARTIALLY_COMPLETED` |
+| `PROCESSING` | `failFinal` | `FAILED` |
+| `CREATED` | `cancel` | `CANCELLED` |
+| `QUEUED` | `cancel` | `CANCELLED` |
+
+## NotificationDelivery
+
+Initial: `PENDING`
+
+| Current | Command/Event | Target |
+|---|---|---|
+| `PENDING` | `send` | `SENDING` |
+| `SENDING` | `providerAccepted` | `SENT` |
+| `SENDING` | `tempFail` | `RETRY_WAIT` |
+| `SENDING` | `finalFail` | `FAILED` |
+| `SENDING` | `suppress` | `SUPPRESSED` |
+| `RETRY_WAIT` | `retry` | `SENDING` |
+| `SENT` | `deliveryReceipt` | `DELIVERED` |
+| `SENT` | `bounce` | `BOUNCED` |
+| `SENT` | `providerReject` | `REJECTED` |
+
+Notes: uncertain provider results stay in `SENDING` with `result_uncertain` flag; never immediately send a duplicate.

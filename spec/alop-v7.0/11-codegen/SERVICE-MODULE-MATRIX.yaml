@@ -7,24 +7,31 @@ services:
   database: alop_tenant
   crossDatabaseWrite: FORBIDDEN
 - service: alop-iam
+  # 02-domain/iam 暂未从 iam-organization 拆分，DOMAIN-SPEC 暂用 02-domain/iam-organization/DOMAIN-SPEC.md
   domainSpecs:
-  - iam-organization
+  - iam
   owns: User membership, Role, Permission
   database: alop_iam
   crossDatabaseWrite: FORBIDDEN
 - service: alop-organization
+  # 02-domain/organization 暂未从 iam-organization 拆分，DOMAIN-SPEC 暂用 02-domain/iam-organization/DOMAIN-SPEC.md
   domainSpecs:
-  - iam-organization
-  owns: OrganizationUnit, ManagementTeam
+  - organization
+  owns: OrganizationUnit, ManagementTeam, ResourceAcl, OwnershipHistory
   database: alop_organization
   crossDatabaseWrite: FORBIDDEN
 - service: alop-asset
   domainSpecs:
   - asset
-  - reservation
   - utility-property-parking
-  owns: Asset, ResourceUnit, Reservation, UtilityMeter
+  owns: Asset, ResourceUnit, ConflictGroup, UtilityMeter
   database: alop_asset
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-reservation
+  domainSpecs:
+  - reservation
+  owns: Reservation, ScheduleGuard
+  database: alop_reservation
   crossDatabaseWrite: FORBIDDEN
 - service: alop-crm
   domainSpecs:
@@ -33,6 +40,7 @@ services:
   database: alop_crm
   crossDatabaseWrite: FORBIDDEN
 - service: alop-workflow
+  # 02-domain/workflow 暂未独立，DOMAIN-SPEC 暂用 02-domain/platform-integration/DOMAIN-SPEC.md
   domainSpecs:
   - platform-integration
   owns: WorkflowBusinessRelation
@@ -116,4 +124,16 @@ services:
   - platform-integration
   owns: Gateway policy only
   database: none
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-infra
+  domainSpecs:
+  - platform-integration
+  owns: IntegrationTask, SecretRef, Audit, JobMeta
+  database: alop_infra
+  crossDatabaseWrite: FORBIDDEN
+- service: alop-integration
+  domainSpecs:
+  - platform-integration
+  owns: Provider, Webhook, CredentialMetadata
+  database: alop_integration
   crossDatabaseWrite: FORBIDDEN

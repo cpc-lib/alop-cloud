@@ -29,6 +29,8 @@ Dependencies: TASK-001
 - `02-domain/tenant/STATE-MACHINE.md`
 - `03-database/flyway/tenant/`
 - `04-openapi/tenant.yaml`
+- `08-tests/test-plan.md`
+- `09-operations/runbook.md`
 
 ## Agent preflight output
 Before generating code, state:

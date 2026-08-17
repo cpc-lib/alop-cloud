@@ -32,6 +32,10 @@ Dependencies: TASK-013
 - `03-database/flyway/finance/`
 - `04-openapi/finance.yaml`
 - `04-openapi/finance-extensions.yaml`
+- `08-tests/concurrency.md`
+- `09-operations/enterprise-finance-runbook.md`
+- `12-test-data/allocation.json`
+- `examples/finance-allocation-transaction.md`
 
 ## Agent preflight output
 Before generating code, state:

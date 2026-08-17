@@ -1,6 +1,6 @@
 CREATE TABLE tax_category (
   id BIGINT NOT NULL,
-  tenant_id BIGINT NULL,
+  tenant_id BIGINT NOT NULL DEFAULT 0,
   category_code VARCHAR(64) NOT NULL,
   category_name VARCHAR(128) NOT NULL,
   status VARCHAR(32) NOT NULL,
@@ -12,11 +12,11 @@ CREATE TABLE tax_category (
 
 CREATE TABLE tax_rule (
   id BIGINT NOT NULL,
-  tenant_id BIGINT NULL,
+  tenant_id BIGINT NOT NULL DEFAULT 0,
   jurisdiction_code VARCHAR(64) NOT NULL,
   tax_category_code VARCHAR(64) NOT NULL,
   tax_mode VARCHAR(32) NOT NULL,
-  tax_rate DECIMAL(12,8) NOT NULL,
+  tax_rate DECIMAL(20,8) NOT NULL,
   effective_from DATETIME(3) NOT NULL,
   effective_to DATETIME(3) NULL,
   version_no INT NOT NULL,

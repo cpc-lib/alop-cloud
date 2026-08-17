@@ -36,6 +36,8 @@ Dependencies: TASK-005, TASK-007, TASK-010, TASK-011
 - `02-domain/asset/STATE-MACHINE.md`
 - `03-database/flyway/asset/`
 - `04-openapi/asset.yaml`
+- `08-tests/e2e-scenarios.md`
+- `12-test-data/e2e-lease-001.json`
 
 ## Agent preflight output
 Before generating code, state:

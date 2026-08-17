@@ -1,7 +1,10 @@
 openapi: 3.0.3
 info:
-  title: ALOP Asset & Reservation API
+  title: ALOP Asset API
   version: 7.0.0
+  description: Asset, resource and inventory availability APIs owned by alop-asset.
+    Reservation lifecycle APIs were moved to reservation.yaml per ADR-023 (alop-reservation
+    is an independent service).
 servers:
 - url: /
 paths:
@@ -130,123 +133,6 @@ paths:
           format: int64
       operationId: getResourcesResourceIdAvailability
       x-alop-tenant-scoped: true
-  /api/admin/v1/reservations:
-    post:
-      summary: Create reservation
-      parameters:
-      - in: header
-        name: Idempotency-Key
-        required: true
-        schema:
-          type: string
-          minLength: 8
-          maxLength: 128
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateReservationRequest'
-      responses:
-        '200':
-          description: success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '400':
-          description: Validation/domain request error
-        '403':
-          description: Permission or tenant access denied
-        '409':
-          description: State/idempotency/concurrency conflict
-        '500':
-          description: Unexpected system error
-      operationId: postReservations
-      x-alop-tenant-scoped: true
-      x-alop-command: true
-  /api/admin/v1/reservations/{reservationId}/confirm:
-    post:
-      summary: Confirm reservation
-      parameters:
-      - in: header
-        name: Idempotency-Key
-        required: true
-        schema:
-          type: string
-          minLength: 8
-          maxLength: 128
-      - in: path
-        name: reservationId
-        required: true
-        schema:
-          type: integer
-          format: int64
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ConfirmReservationRequest'
-      responses:
-        '200':
-          description: success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '400':
-          description: Validation/domain request error
-        '403':
-          description: Permission or tenant access denied
-        '409':
-          description: State/idempotency/concurrency conflict
-        '500':
-          description: Unexpected system error
-      operationId: postReservationsReservationIdConfirm
-      x-alop-tenant-scoped: true
-      x-alop-command: true
-  /internal/v1/reservations/{reservationId}/commit:
-    post:
-      summary: Commit reservation for agreement
-      parameters:
-      - in: header
-        name: Idempotency-Key
-        required: true
-        schema:
-          type: string
-          minLength: 8
-          maxLength: 128
-      - in: path
-        name: reservationId
-        required: true
-        schema:
-          type: integer
-          format: int64
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CommitReservationRequest'
-      responses:
-        '200':
-          description: success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '400':
-          description: Validation/domain request error
-        '403':
-          description: Permission or tenant access denied
-        '409':
-          description: State/idempotency/concurrency conflict
-        '500':
-          description: Unexpected system error
-      operationId: postReservationsReservationIdCommit
-      x-alop-tenant-scoped: true
-      x-alop-command: true
   /api/admin/v1/parking-spaces/{resourceId}/availability:
     get:
       summary: Check parking space availability using common ScheduleGuard inventory
@@ -337,65 +223,4 @@ components:
         sellable:
           type: boolean
           default: false
-    ReservationItemRequest:
-      type: object
-      required:
-      - resourceUnitId
-      - offeringId
-      - startTime
-      - endTime
-      properties:
-        resourceUnitId:
-          type: integer
-          format: int64
-        offeringId:
-          type: integer
-          format: int64
-        startTime:
-          type: string
-          format: date-time
-        endTime:
-          type: string
-          format: date-time
-    CreateReservationRequest:
-      type: object
-      required:
-      - customerId
-      - quotationVersionId
-      - items
-      properties:
-        customerId:
-          type: integer
-          format: int64
-        opportunityId:
-          type: integer
-          format: int64
-        quotationVersionId:
-          type: integer
-          format: int64
-        holdMinutes:
-          type: integer
-          minimum: 1
-          maximum: 10080
-        items:
-          type: array
-          minItems: 1
-          items:
-            $ref: '#/components/schemas/ReservationItemRequest'
-    ConfirmReservationRequest:
-      type: object
-      properties:
-        paymentOrderId:
-          type: integer
-          format: int64
-    CommitReservationRequest:
-      type: object
-      required:
-      - agreementId
-      - requestId
-      properties:
-        agreementId:
-          type: integer
-          format: int64
-        requestId:
-          type: string
+

@@ -7,8 +7,100 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: agreement_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: agreement_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: source_opportunity_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: source_quotation_version_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: source_reservation_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: previous_agreement_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: sign_time
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: start_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: end_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: currency
+    type: CHAR(3)
+    nullable: false
+    default: null
+  - name: total_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: deposit_amount
+    type: DECIMAL(18,2)
+    nullable: false
     default: '0'
-  indexes: []
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: expiry_stage
+    type: VARCHAR(16)
+    nullable: false
+    default: '''NONE'''
+  - name: workflow_instance_id
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_agreement
+    columns: tenant_id, agreement_no
+  - type: KEY
+    name: idx_ag_customer
+    columns: tenant_id, customer_id, status
+  - type: KEY
+    name: idx_ag_expiry
+    columns: tenant_id, status, end_time, id
 - module: agreement
   migration: 03-database/flyway/agreement/V1__init.sql
   table: agreement_item
@@ -16,8 +108,66 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: offering_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: start_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: end_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: unit_price
+    type: DECIMAL(20,8)
+    nullable: false
+    default: null
+  - name: quantity
+    type: DECIMAL(20,6)
+    nullable: false
     default: '1'
-  indexes: []
+  - name: discount_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: '0'
+  - name: amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: effective_from
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: effective_to
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_ag_item_res
+    columns: tenant_id, resource_unit_id, start_time, end_time
 - module: agreement
   migration: 03-database/flyway/agreement/V1__init.sql
   table: agreement_snapshot
@@ -26,7 +176,37 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: snapshot_version
+    type: INT
+    nullable: false
+    default: null
+  - name: snapshot_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: payload
+    type: JSON
+    nullable: false
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_ag_snapshot
+    columns: tenant_id, agreement_id, snapshot_version, snapshot_type
 - module: agreement
   migration: 03-database/flyway/agreement/V1__init.sql
   table: agreement_change
@@ -35,7 +215,60 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: change_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: change_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: effective_date
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: reason
+    type: VARCHAR(1024)
+    nullable: true
+    default: null
+  - name: before_snapshot
+    type: JSON
+    nullable: false
+    default: null
+  - name: after_snapshot
+    type: JSON
+    nullable: false
+    default: null
+  - name: workflow_instance_id
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_ag_change
+    columns: tenant_id, change_no
+  - type: KEY
+    name: idx_ag_change_ag
+    columns: tenant_id, agreement_id, status
 - module: agreement
   migration: 03-database/flyway/agreement/V1__init.sql
   table: agreement_sign_process
@@ -43,8 +276,57 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: reservation_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: process_status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: asset_commit_status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: agreement_commit_status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: retry_count
+    type: INT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: last_error
+    type: TEXT
+    nullable: true
+    default: null
+  - name: request_id
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_sign_request
+    columns: tenant_id, request_id
+  - type: UNIQUE KEY
+    name: uk_sign_agreement
+    columns: tenant_id, agreement_id
 - module: agreement
   migration: 03-database/flyway/agreement/V1__init.sql
   table: renewal_priority
@@ -53,7 +335,57 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: priority_start
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: priority_end
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: priority_mode
+    type: VARCHAR(16)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: decision_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: decision_by
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: decision_reason
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_renewal_res
+    columns: tenant_id, resource_unit_id, status, priority_end
 - module: agreement
   migration: 03-database/flyway/agreement/V1__init.sql
   table: handover_order
@@ -62,7 +394,48 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: handover_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: handover_type
+    type: VARCHAR(16)
+    nullable: false
+    default: null
+  - name: planned_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: completed_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: signed_file_id
+    type: BIGINT
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_handover
+    columns: tenant_id, handover_no
+  - type: KEY
+    name: idx_handover_ag
+    columns: tenant_id, agreement_id, status
 - module: agreement
   migration: 03-database/flyway/agreement/V1__init.sql
   table: handover_item
@@ -71,7 +444,42 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: handover_order_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: item_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: item_name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: before_value
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: after_value
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: amount
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: evidence_file_id
+    type: BIGINT
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
 - module: agreement
   migration: 03-database/flyway/agreement/V1__init.sql
   table: signature_process
@@ -80,14 +488,56 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: provider
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: provider_process_no
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: signed_file_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: file_sha256
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_sig_ag
+    columns: tenant_id, agreement_id
 - module: agreement
   migration: 03-database/flyway/agreement/V2__parking_vehicle_binding.sql
   table: parking_vehicle_binding
   columns:
   - name: id
     type: BIGINT
-    nullable: true
+    nullable: false
     default: null
   - name: tenant_id
     type: BIGINT
@@ -138,6 +588,9 @@ tables:
     nullable: false
     default: '0'
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: KEY
     name: idx_parking_binding_agreement
     columns: tenant_id, agreement_id, status
@@ -615,8 +1068,104 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: asset_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: asset_name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: asset_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: ownership_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: operation_mode
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: country_code
+    type: VARCHAR(8)
+    nullable: true
+    default: null
+  - name: province_code
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: city_code
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: district_code
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: address
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: longitude
+    type: DECIMAL(10,7)
+    nullable: true
+    default: null
+  - name: latitude
+    type: DECIMAL(10,7)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: management_team_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: created_by
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_by
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: version
+    type: INT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: deleted
+    type: TINYINT
+    nullable: false
+    default: '0'
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_asset
+    columns: tenant_id, asset_code
+  - type: KEY
+    name: idx_asset_status
+    columns: tenant_id, status
+  - type: KEY
+    name: idx_asset_city
+    columns: tenant_id, city_code
 - module: asset
   migration: 03-database/flyway/asset/V1__init.sql
   table: asset_space
@@ -624,8 +1173,69 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: asset_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: parent_space_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: space_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: space_name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: space_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: level_no
+    type: INT
+    nullable: true
+    default: null
+  - name: sort_order
+    type: INT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  - name: deleted
+    type: TINYINT
+    nullable: false
+    default: '0'
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_space
+    columns: tenant_id, asset_id, space_code
+  - type: KEY
+    name: idx_space_parent
+    columns: tenant_id, parent_space_id
 - module: asset
   migration: 03-database/flyway/asset/V1__init.sql
   table: resource_unit
@@ -633,17 +1243,84 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
-    default: '1'
-  indexes: []
-- module: asset
-  migration: 03-database/flyway/asset/V1__init.sql
-  table: resource_schedule_guard
-  columns:
+    default: null
   - name: tenant_id
     type: BIGINT
     nullable: false
+    default: null
+  - name: asset_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: space_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: resource_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: resource_name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: resource_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: area
+    type: DECIMAL(12,2)
+    nullable: true
+    default: null
+  - name: capacity
+    type: INT
+    nullable: true
+    default: null
+  - name: rentable
+    type: TINYINT
+    nullable: false
+    default: '1'
+  - name: sellable
+    type: TINYINT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: physical_status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: sale_status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  - name: deleted
+    type: TINYINT
+    nullable: false
+    default: '0'
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_resource
+    columns: tenant_id, resource_code
+  - type: KEY
+    name: idx_res_asset
+    columns: tenant_id, asset_id
+  - type: KEY
+    name: idx_res_status
+    columns: tenant_id, physical_status, sale_status
 - module: asset
   migration: 03-database/flyway/asset/V1__init.sql
   table: resource_conflict_group
@@ -652,7 +1329,33 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: group_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: group_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_conflict_group
+    columns: tenant_id, group_code
 - module: asset
   migration: 03-database/flyway/asset/V1__init.sql
   table: resource_conflict_group_member
@@ -661,7 +1364,21 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: group_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: tenant_id, group_id, resource_unit_id
+  - type: KEY
+    name: idx_conf_member_resource
+    columns: tenant_id, resource_unit_id
 - module: asset
   migration: 03-database/flyway/asset/V1__init.sql
   table: valuation
@@ -670,7 +1387,68 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: valuation_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: asset_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: valuation_version
+    type: INT
+    nullable: false
+    default: null
+  - name: suggested_rent
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: floor_rent
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: suggested_sale_price
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: floor_sale_price
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: valid_from
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: valid_until
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: report_file_id
+    type: BIGINT
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_valuation
+    columns: tenant_id, valuation_no
+  - type: KEY
+    name: idx_valuation_resource
+    columns: tenant_id, resource_unit_id, valuation_version
 - module: asset
   migration: 03-database/flyway/asset/V1__init.sql
   table: offering
@@ -678,8 +1456,85 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: offering_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: source_valuation_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: offering_name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: offering_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: pricing_model
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: currency
+    type: CHAR(3)
+    nullable: false
+    default: null
+  - name: base_price
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: guidance_price
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: minimum_price
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: valid_from
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: valid_to
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: minimum_duration_minutes
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: maximum_duration_minutes
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: version
+    type: INT
+    nullable: false
     default: '0'
-  indexes: []
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_offering
+    columns: tenant_id, offering_code
+  - type: KEY
+    name: idx_offer_res
+    columns: tenant_id, resource_unit_id, status
 - module: asset
   migration: 03-database/flyway/asset/V1__init.sql
   table: listing
@@ -687,44 +1542,68 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
-    default: '0'
-  indexes: []
-- module: asset
-  migration: 03-database/flyway/asset/V1__init.sql
-  table: resource_availability
-  columns:
-  - name: id
-    type: BIGINT
-    nullable: false
-    default: '0'
-  indexes: []
-- module: asset
-  migration: 03-database/flyway/asset/V1__init.sql
-  table: resource_occupancy
-  columns:
-  - name: id
-    type: BIGINT
-    nullable: false
-    default: '0'
-  indexes: []
-- module: asset
-  migration: 03-database/flyway/asset/V1__init.sql
-  table: reservation
-  columns:
-  - name: id
-    type: BIGINT
-    nullable: false
-    default: '0'
-  indexes: []
-- module: asset
-  migration: 03-database/flyway/asset/V1__init.sql
-  table: reservation_item
-  columns:
-  - name: id
+    default: null
+  - name: tenant_id
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: listing_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: offering_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: channel
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: title
+    type: VARCHAR(256)
+    nullable: false
+    default: null
+  - name: description
+    type: TEXT
+    nullable: true
+    default: null
+  - name: display_price
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: publish_start
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: publish_end
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: data_version
+    type: BIGINT
+    nullable: false
+    default: '0'
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_listing
+    columns: tenant_id, listing_no
+  - type: KEY
+    name: idx_listing_channel
+    columns: tenant_id, channel, status
+  - type: KEY
+    name: idx_listing_res
+    columns: tenant_id, resource_unit_id
 - module: asset
   migration: 03-database/flyway/asset/V1__init.sql
   table: renovation_order
@@ -733,7 +1612,44 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: renovation_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: start_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: end_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: reason
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_reno
+    columns: tenant_id, renovation_no
+  - type: KEY
+    name: idx_reno_res
+    columns: tenant_id, resource_unit_id, status
 - module: asset
   migration: 03-database/flyway/asset/V1__init.sql
   table: maintenance_order
@@ -741,8 +1657,46 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: maintenance_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: emergency
+    type: TINYINT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: planned_start
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: planned_end
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: problem
+    type: TEXT
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_maint
+    columns: tenant_id, maintenance_no
 - module: asset
   migration: 03-database/flyway/asset/V1__init.sql
   table: operation_work_order
@@ -751,14 +1705,67 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: work_order_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: work_order_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: priority
+    type: VARCHAR(16)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: assignee_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: sla_due_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: description
+    type: TEXT
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_workorder
+    columns: tenant_id, work_order_no
+  - type: KEY
+    name: idx_workorder_status
+    columns: tenant_id, status, sla_due_at
 - module: asset
   migration: 03-database/flyway/asset/V2__utility_meter_and_parking.sql
   table: parking_space_profile
   columns:
   - name: id
     type: BIGINT
-    nullable: true
+    nullable: false
     default: null
   - name: tenant_id
     type: BIGINT
@@ -817,6 +1824,9 @@ tables:
     nullable: false
     default: '0'
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_parking_profile_resource
     columns: tenant_id, resource_unit_id
@@ -832,7 +1842,7 @@ tables:
   columns:
   - name: id
     type: BIGINT
-    nullable: true
+    nullable: false
     default: null
   - name: tenant_id
     type: BIGINT
@@ -859,7 +1869,7 @@ tables:
     nullable: false
     default: null
   - name: multiplier
-    type: DECIMAL(18,8)
+    type: DECIMAL(20,8)
     nullable: false
     default: '1'
   - name: manufacturer
@@ -891,6 +1901,9 @@ tables:
     nullable: false
     default: '0'
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_utility_meter_no
     columns: tenant_id, meter_no
@@ -903,7 +1916,7 @@ tables:
   columns:
   - name: id
     type: BIGINT
-    nullable: true
+    nullable: false
     default: null
   - name: tenant_id
     type: BIGINT
@@ -930,7 +1943,7 @@ tables:
     nullable: false
     default: null
   - name: allocation_ratio
-    type: DECIMAL(18,8)
+    type: DECIMAL(20,8)
     nullable: true
     default: null
   - name: effective_from
@@ -958,6 +1971,9 @@ tables:
     nullable: false
     default: '0'
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: KEY
     name: idx_meter_binding_meter
     columns: tenant_id, meter_id, status, effective_from, effective_to
@@ -970,7 +1986,7 @@ tables:
   columns:
   - name: id
     type: BIGINT
-    nullable: true
+    nullable: false
     default: null
   - name: tenant_id
     type: BIGINT
@@ -993,15 +2009,15 @@ tables:
     nullable: false
     default: null
   - name: previous_reading
-    type: DECIMAL(20,8)
+    type: DECIMAL(20,6)
     nullable: false
     default: null
   - name: current_reading
-    type: DECIMAL(20,8)
+    type: DECIMAL(20,6)
     nullable: false
     default: null
   - name: consumption
-    type: DECIMAL(20,8)
+    type: DECIMAL(20,6)
     nullable: false
     default: null
   - name: source_type
@@ -1061,6 +2077,9 @@ tables:
     nullable: false
     default: null
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_meter_reading_no
     columns: tenant_id, reading_no
@@ -1080,8 +2099,97 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: agreement_item_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: rule_version
+    type: INT
+    nullable: false
+    default: null
+  - name: charge_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: calculation_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: billing_cycle_months
+    type: INT
+    nullable: true
+    default: null
+  - name: start_date
+    type: DATE
+    nullable: false
+    default: null
+  - name: end_date
+    type: DATE
+    nullable: false
+    default: null
+  - name: unit_price
+    type: DECIMAL(20,8)
+    nullable: false
+    default: null
+  - name: quantity
+    type: DECIMAL(20,6)
+    nullable: false
     default: '1'
-  indexes: []
+  - name: proration_method
+    type: VARCHAR(32)
+    nullable: false
+    default: '''NONE'''
+  - name: free_days
+    type: INT
+    nullable: false
+    default: '0'
+  - name: escalation_type
+    type: VARCHAR(32)
+    nullable: false
+    default: '''NONE'''
+  - name: escalation_value
+    type: DECIMAL(20,8)
+    nullable: true
+    default: null
+  - name: due_rule_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: due_rule_value
+    type: INT
+    nullable: true
+    default: null
+  - name: priority
+    type: INT
+    nullable: false
+    default: '100'
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: calculation_config
+    type: JSON
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_bill_rule_ver
+    columns: tenant_id, agreement_id, id, rule_version
+  - type: KEY
+    name: idx_bill_rule_ag
+    columns: tenant_id, agreement_id, status
 - module: billing
   migration: 03-database/flyway/billing/V1__init.sql
   table: billing_plan
@@ -1090,7 +2198,33 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: plan_version
+    type: INT
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: generated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_plan_ver
+    columns: tenant_id, agreement_id, plan_version
 - module: billing
   migration: 03-database/flyway/billing/V1__init.sql
   table: billing_plan_item
@@ -1099,7 +2233,49 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: billing_plan_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: source_rule_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: charge_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: period_start
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: period_end
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: due_date
+    type: DATE
+    nullable: false
+    default: null
+  - name: planned_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: calculation_trace
+    type: JSON
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_plan_item_due
+    columns: tenant_id, due_date
 - module: billing
   migration: 03-database/flyway/billing/V1__init.sql
   table: bill
@@ -1107,8 +2283,72 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: bill_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: period_start
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: period_end
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: original_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: adjustment_amount
+    type: DECIMAL(18,2)
+    nullable: false
     default: '0'
-  indexes: []
+  - name: payable_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: due_date
+    type: DATE
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: issued_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_bill
+    columns: tenant_id, bill_no
+  - type: KEY
+    name: idx_bill_ag
+    columns: tenant_id, agreement_id, status
+  - type: KEY
+    name: idx_bill_due
+    columns: tenant_id, status, due_date
 - module: billing
   migration: 03-database/flyway/billing/V1__init.sql
   table: bill_item
@@ -1116,15 +2356,65 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: bill_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: charge_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: description
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: quantity
+    type: DECIMAL(20,6)
+    nullable: false
+    default: null
+  - name: unit_price
+    type: DECIMAL(20,8)
+    nullable: false
+    default: null
+  - name: original_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: discount_amount
+    type: DECIMAL(18,2)
+    nullable: false
     default: '0'
-  indexes: []
+  - name: final_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: source_rule_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: calculation_trace
+    type: JSON
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_bill_item_bill
+    columns: tenant_id, bill_id
 - module: billing
   migration: 03-database/flyway/billing/V2__utility_property_parking_billing.sql
   table: utility_tariff_plan
   columns:
   - name: id
     type: BIGINT
-    nullable: true
+    nullable: false
     default: null
   - name: tenant_id
     type: BIGINT
@@ -1179,6 +2469,9 @@ tables:
     nullable: false
     default: null
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_tariff_code_ver
     columns: tenant_id, tariff_code, version_no
@@ -1191,7 +2484,7 @@ tables:
   columns:
   - name: id
     type: BIGINT
-    nullable: true
+    nullable: false
     default: null
   - name: tenant_id
     type: BIGINT
@@ -1218,10 +2511,13 @@ tables:
     nullable: true
     default: null
   - name: unit_price
-    type: DECIMAL(18,8)
+    type: DECIMAL(20,8)
     nullable: false
     default: null
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_tariff_tier
     columns: tenant_id, tariff_plan_id, tier_no, time_bucket
@@ -1361,8 +2657,88 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: lead_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: source
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: name
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: phone_ciphertext
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: phone_hash
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: email
+    type: VARCHAR(256)
+    nullable: true
+    default: null
+  - name: company
+    type: VARCHAR(256)
+    nullable: true
+    default: null
+  - name: requirement
+    type: TEXT
+    nullable: true
+    default: null
+  - name: owner_user_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: owner_team_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: first_contact_due_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: first_contact_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: version
+    type: INT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_lead
+    columns: tenant_id, lead_no
+  - type: KEY
+    name: idx_lead_owner
+    columns: tenant_id, owner_user_id, status
+  - type: KEY
+    name: idx_lead_phone
+    columns: tenant_id, phone_hash
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: customer
@@ -1370,8 +2746,92 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: customer_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: customer_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: customer_name
+    type: VARCHAR(256)
+    nullable: false
+    default: null
+  - name: phone_ciphertext
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: phone_hash
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: email
+    type: VARCHAR(256)
+    nullable: true
+    default: null
+  - name: company_name
+    type: VARCHAR(256)
+    nullable: true
+    default: null
+  - name: source
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: customer_level
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: credit_level
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: owner_user_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: owner_team_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: merged_to_customer_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: version
+    type: INT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_customer
+    columns: tenant_id, customer_no
+  - type: KEY
+    name: idx_customer_owner
+    columns: tenant_id, owner_user_id, status
+  - type: KEY
+    name: idx_customer_phone
+    columns: tenant_id, phone_hash
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: customer_contact
@@ -1379,8 +2839,50 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: phone_ciphertext
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: phone_hash
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: email
+    type: VARCHAR(256)
+    nullable: true
+    default: null
+  - name: position_name
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: is_primary
+    type: TINYINT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_contact_customer
+    columns: tenant_id, customer_id
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: customer_merge_record
@@ -1389,7 +2891,37 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: source_customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: target_customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: merge_snapshot
+    type: JSON
+    nullable: false
+    default: null
+  - name: merged_by
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: merged_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_merge_source
+    columns: tenant_id, source_customer_id
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: customer_ownership_history
@@ -1398,7 +2930,41 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: old_owner_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: new_owner_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: reason
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: changed_by
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: changed_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_cust_owner_hist
+    columns: tenant_id, customer_id, changed_at
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: opportunity
@@ -1406,8 +2972,85 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: opportunity_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: opportunity_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: budget_min
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: budget_max
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: required_area_min
+    type: DECIMAL(12,2)
+    nullable: true
+    default: null
+  - name: required_area_max
+    type: DECIMAL(12,2)
+    nullable: true
+    default: null
+  - name: expected_start
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: expected_end
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: preferred_region
+    type: VARCHAR(256)
+    nullable: true
+    default: null
+  - name: owner_user_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: stage
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: stage_enter_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: lost_reason_code
+    type: VARCHAR(64)
+    nullable: true
+    default: null
+  - name: lost_reason
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: version
+    type: INT
+    nullable: false
     default: '0'
-  indexes: []
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_opp
+    columns: tenant_id, opportunity_no
+  - type: KEY
+    name: idx_opp_owner
+    columns: tenant_id, owner_user_id, stage
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: opportunity_stage_history
@@ -1416,7 +3059,45 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: opportunity_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: from_stage
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: to_stage
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: changed_by
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: changed_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: duration_seconds
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: reason
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_opp_hist
+    columns: tenant_id, opportunity_id, changed_at
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: viewing_appointment
@@ -1425,7 +3106,65 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: viewing_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: opportunity_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: appointment_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: advisor_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: arrived_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: completed_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: customer_feedback
+    type: TEXT
+    nullable: true
+    default: null
+  - name: intention_level
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: advisor_comment
+    type: TEXT
+    nullable: true
+    default: null
+  - name: next_follow_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_viewing
+    columns: tenant_id, viewing_no
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: viewing_resource_relation
@@ -1434,7 +3173,18 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: viewing_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: tenant_id, viewing_id, resource_unit_id
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: quotation
@@ -1442,8 +3192,42 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: quotation_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: opportunity_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: current_version_no
+    type: INT
+    nullable: false
     default: '1'
-  indexes: []
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_quote
+    columns: tenant_id, quotation_no
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: quotation_version
@@ -1451,8 +3235,74 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: quotation_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: version_no
+    type: INT
+    nullable: false
+    default: null
+  - name: currency
+    type: CHAR(3)
+    nullable: false
+    default: null
+  - name: valid_from
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: valid_until
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: subtotal_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: discount_amount
+    type: DECIMAL(18,2)
+    nullable: false
     default: '0'
-  indexes: []
+  - name: total_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: deposit_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: '0'
+  - name: billing_cycle_months
+    type: INT
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: approval_instance_id
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: created_by
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_quote_ver
+    columns: tenant_id, quotation_id, version_no
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: quotation_item
@@ -1460,8 +3310,62 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: quotation_version_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: offering_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: start_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: end_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: quantity
+    type: DECIMAL(20,6)
+    nullable: false
     default: '1'
-  indexes: []
+  - name: unit_price
+    type: DECIMAL(20,8)
+    nullable: false
+    default: null
+  - name: guidance_price
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: floor_price
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: discount_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: '0'
+  - name: final_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_quote_item_res
+    columns: tenant_id, resource_unit_id
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: crm_activity
@@ -1470,7 +3374,45 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: opportunity_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: activity_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: content
+    type: TEXT
+    nullable: true
+    default: null
+  - name: operator_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: occurred_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: next_follow_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_activity_customer
+    columns: tenant_id, customer_id, occurred_at
 - module: crm
   migration: 03-database/flyway/crm/V1__init.sql
   table: crm_task
@@ -1479,14 +3421,59 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: task_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: opportunity_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: task_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: title
+    type: VARCHAR(256)
+    nullable: false
+    default: null
+  - name: due_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: owner_user_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_crm_task
+    columns: tenant_id, task_no
+  - type: KEY
+    name: idx_task_owner
+    columns: tenant_id, owner_user_id, status, due_at
 - module: crm
   migration: 03-database/flyway/crm/V2__customer_vehicle.sql
   table: customer_vehicle
   columns:
   - name: id
     type: BIGINT
-    nullable: true
+    nullable: false
     default: null
   - name: tenant_id
     type: BIGINT
@@ -1537,6 +3524,9 @@ tables:
     nullable: false
     default: '0'
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: KEY
     name: idx_vehicle_customer
     columns: tenant_id, customer_id, status
@@ -1550,8 +3540,87 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: receivable_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: bill_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: charge_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: due_date
+    type: DATE
+    nullable: false
+    default: null
+  - name: original_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: adjustment_amount
+    type: DECIMAL(18,2)
+    nullable: false
     default: '0'
-  indexes: []
+  - name: receivable_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: allocated_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: '0'
+  - name: outstanding_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_recv
+    columns: tenant_id, receivable_no
+  - type: UNIQUE KEY
+    name: uk_recv_bill_charge
+    columns: tenant_id, bill_id, charge_type
+  - type: KEY
+    name: idx_recv_customer
+    columns: tenant_id, customer_id, status, due_date
+  - type: KEY
+    name: idx_recv_ag
+    columns: tenant_id, agreement_id
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: receivable_adjustment
@@ -1560,7 +3629,49 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: receivable_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: adjustment_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: reason
+    type: VARCHAR(512)
+    nullable: false
+    default: null
+  - name: workflow_instance_id
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: created_by
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_recv_adj
+    columns: tenant_id, receivable_id, status
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: collection_record
@@ -1568,8 +3679,72 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: collection_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: collection_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: source_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: source_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: currency
+    type: CHAR(3)
+    nullable: false
+    default: null
+  - name: amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: allocated_amount
+    type: DECIMAL(18,2)
+    nullable: false
     default: '0'
-  indexes: []
+  - name: unallocated_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: collection_date
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_collection_no
+    columns: tenant_id, collection_no
+  - type: UNIQUE KEY
+    name: uk_collection_source
+    columns: tenant_id, source_type, source_id
+  - type: KEY
+    name: idx_collection_customer
+    columns: tenant_id, customer_id, status
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: payment_allocation
@@ -1578,7 +3753,48 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: collection_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: receivable_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: allocation_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: allocation_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: operator_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: allocated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_alloc_collection
+    columns: tenant_id, collection_id
+  - type: KEY
+    name: idx_alloc_recv
+    columns: tenant_id, receivable_id
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: allocation_reversal
@@ -1587,7 +3803,37 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: original_allocation_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: reversal_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: reason
+    type: VARCHAR(512)
+    nullable: false
+    default: null
+  - name: operator_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: reversed_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_alloc_rev_once
+    columns: tenant_id, original_allocation_id, id
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: customer_advance
@@ -1596,7 +3842,41 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: collection_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: currency
+    type: CHAR(3)
+    nullable: false
+    default: null
+  - name: original_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: available_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_adv_customer
+    columns: tenant_id, customer_id, status
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: invoice_quota_reservation
@@ -1604,8 +3884,49 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: allocation_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: invoice_application_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: reserved_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: version
+    type: INT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_quota_app
+    columns: tenant_id, invoice_application_id
+  - type: KEY
+    name: idx_quota_alloc
+    columns: tenant_id, allocation_id, status
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: account
@@ -1614,7 +3935,33 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: account_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: account_name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: account_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_account
+    columns: tenant_id, account_code
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: accounting_entry
@@ -1623,7 +3970,52 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: entry_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: business_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: business_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: posting_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: occurred_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: posting_date
+    type: DATE
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: description
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_entry_no
+    columns: tenant_id, entry_no
+  - type: UNIQUE KEY
+    name: uk_entry_biz
+    columns: tenant_id, business_type, business_id, posting_type
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: accounting_line
@@ -1632,7 +4024,45 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: entry_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: account_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: direction
+    type: VARCHAR(8)
+    nullable: false
+    default: null
+  - name: amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: currency
+    type: CHAR(3)
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: agreement_id
+    type: BIGINT
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_line_entry
+    columns: tenant_id, entry_id
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: dunning_case
@@ -1640,8 +4070,57 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: receivable_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: dunning_level
+    type: INT
+    nullable: false
     default: '1'
-  indexes: []
+  - name: promised_amount
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: promised_date
+    type: DATE
+    nullable: true
+    default: null
+  - name: owner_user_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: next_action_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_dunning_recv
+    columns: tenant_id, receivable_id
+  - type: KEY
+    name: idx_dunning_owner
+    columns: tenant_id, owner_user_id, status, next_action_at
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: reconciliation_batch
@@ -1649,8 +4128,61 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: batch_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: channel
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: statement_date
+    type: DATE
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: total_channel_count
+    type: BIGINT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: total_local_count
+    type: BIGINT
+    nullable: false
+    default: '0'
+  - name: matched_count
+    type: BIGINT
+    nullable: false
+    default: '0'
+  - name: exception_count
+    type: BIGINT
+    nullable: false
+    default: '0'
+  - name: started_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: finished_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_recon_batch
+    columns: tenant_id, batch_no
+  - type: UNIQUE KEY
+    name: uk_recon_day
+    columns: tenant_id, channel, statement_date
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: reconciliation_item
@@ -1659,7 +4191,53 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: batch_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: channel_trade_no
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: payment_no
+    type: VARCHAR(64)
+    nullable: true
+    default: null
+  - name: channel_amount
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: local_amount
+    type: DECIMAL(18,2)
+    nullable: true
+    default: null
+  - name: channel_status
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: local_status
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: result_type
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: exception_id
+    type: BIGINT
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_recon_item_batch
+    columns: tenant_id, batch_id, result_type
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: reconciliation_exception
@@ -1668,7 +4246,72 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: exception_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: exception_type
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: severity
+    type: VARCHAR(16)
+    nullable: false
+    default: null
+  - name: business_type
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: business_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: channel_payload
+    type: JSON
+    nullable: true
+    default: null
+  - name: local_payload
+    type: JSON
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: owner_user_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: resolution_type
+    type: VARCHAR(64)
+    nullable: true
+    default: null
+  - name: resolution_reason
+    type: VARCHAR(1024)
+    nullable: true
+    default: null
+  - name: resolved_by
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: resolved_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_recon_ex
+    columns: tenant_id, exception_no
+  - type: KEY
+    name: idx_recon_ex_status
+    columns: tenant_id, status, severity
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: channel_statement
@@ -1677,7 +4320,33 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: channel
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: statement_date
+    type: DATE
+    nullable: false
+    default: null
+  - name: file_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_stmt
+    columns: tenant_id, channel, statement_date
 - module: finance
   migration: 03-database/flyway/finance/V1__init.sql
   table: channel_statement_item
@@ -1686,7 +4355,49 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: statement_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: channel_trade_no
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: merchant_order_no
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: trade_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: currency
+    type: CHAR(3)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: occurred_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_stmt_trade
+    columns: tenant_id, channel_trade_no
 - module: finance
   migration: 03-database/flyway/finance/V2__refund_amount_reservation.sql
   table: refund_amount_reservation
@@ -2059,114 +4770,185 @@ tables:
   - type: KEY
     name: idx_unidentified_status
     columns: tenant_id, status, received_at
-- module: iam-organization
-  migration: 03-database/flyway/iam-organization/V1__init.sql
+- module: iam
+  migration: 03-database/flyway/iam/V1__init.sql
   table: platform_user
   columns:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: username
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: password_hash
+    type: VARCHAR(255)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
     default: CURRENT_TIMESTAMP(3)
-  indexes: []
-- module: iam-organization
-  migration: 03-database/flyway/iam-organization/V1__init.sql
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_username
+    columns: username
+- module: iam
+  migration: 03-database/flyway/iam/V1__init.sql
   table: tenant_user_membership
   columns:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: user_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: employee_no
+    type: VARCHAR(64)
+    nullable: true
+    default: null
+  - name: display_name
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: primary_org_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
     default: CURRENT_TIMESTAMP(3)
-  indexes: []
-- module: iam-organization
-  migration: 03-database/flyway/iam-organization/V1__init.sql
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_membership
+    columns: tenant_id, user_id
+  - type: KEY
+    name: idx_membership_org
+    columns: tenant_id, primary_org_id, status
+- module: iam
+  migration: 03-database/flyway/iam/V1__init.sql
   table: role
   columns:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: role_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: role_name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: risk_level
+    type: INT
+    nullable: false
     default: '1'
-  indexes: []
-- module: iam-organization
-  migration: 03-database/flyway/iam-organization/V1__init.sql
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_role
+    columns: tenant_id, role_code
+- module: iam
+  migration: 03-database/flyway/iam/V1__init.sql
   table: permission
   columns:
   - name: id
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
-- module: iam-organization
-  migration: 03-database/flyway/iam-organization/V1__init.sql
+  - name: permission_code
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: permission_name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: module_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_perm
+    columns: permission_code
+- module: iam
+  migration: 03-database/flyway/iam/V1__init.sql
   table: role_permission
   columns:
   - name: role_id
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
-- module: iam-organization
-  migration: 03-database/flyway/iam-organization/V1__init.sql
+  - name: permission_id
+    type: BIGINT
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: role_id, permission_id
+- module: iam
+  migration: 03-database/flyway/iam/V1__init.sql
   table: user_role
   columns:
   - name: tenant_id
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
-- module: iam-organization
-  migration: 03-database/flyway/iam-organization/V1__init.sql
-  table: organization_unit
-  columns:
-  - name: id
+  - name: membership_id
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
-- module: iam-organization
-  migration: 03-database/flyway/iam-organization/V1__init.sql
-  table: management_team
-  columns:
-  - name: id
+  - name: role_id
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
-- module: iam-organization
-  migration: 03-database/flyway/iam-organization/V1__init.sql
-  table: management_team_member
-  columns:
-  - name: id
-    type: BIGINT
-    nullable: false
-    default: null
-  indexes: []
-- module: iam-organization
-  migration: 03-database/flyway/iam-organization/V1__init.sql
-  table: team_resource_relation
-  columns:
-  - name: id
-    type: BIGINT
-    nullable: false
-    default: null
-  indexes: []
-- module: iam-organization
-  migration: 03-database/flyway/iam-organization/V1__init.sql
-  table: resource_acl
-  columns:
-  - name: id
-    type: BIGINT
-    nullable: false
-    default: null
-  indexes: []
-- module: iam-organization
-  migration: 03-database/flyway/iam-organization/V1__init.sql
-  table: ownership_history
-  columns:
-  - name: id
-    type: BIGINT
-    nullable: false
-    default: null
-  indexes: []
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: tenant_id, membership_id, role_id
 - module: integration
   migration: 03-database/flyway/integration/V1__init.sql
   table: mq_outbox
@@ -2174,8 +4956,73 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: event_id
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: aggregate_type
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: aggregate_id
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: aggregate_version
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: event_type
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: event_version
+    type: VARCHAR(16)
+    nullable: false
+    default: null
+  - name: payload
+    type: JSON
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(16)
+    nullable: false
+    default: null
+  - name: retry_count
+    type: INT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: next_retry_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: claim_token
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: published_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_outbox_event
+    columns: event_id
+  - type: KEY
+    name: idx_outbox_poll
+    columns: status, next_retry_at, id
 - module: integration
   migration: 03-database/flyway/integration/V1__init.sql
   table: mq_inbox
@@ -2184,7 +5031,41 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: consumer_group
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: event_id
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: aggregate_version
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(16)
+    nullable: false
+    default: null
+  - name: processed_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: error_message
+    type: VARCHAR(1024)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_inbox
+    columns: tenant_id, consumer_group, event_id
 - module: integration
   migration: 03-database/flyway/integration/V1__init.sql
   table: integration_task
@@ -2192,8 +5073,74 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: task_type
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: business_type
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: business_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: event_id
+    type: VARCHAR(64)
+    nullable: true
+    default: null
+  - name: trace_id
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: retry_count
+    type: INT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: next_retry_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: last_error_code
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: last_error_message
+    type: TEXT
+    nullable: true
+    default: null
+  - name: owner_user_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: manual_required
+    type: TINYINT
+    nullable: false
+    default: '0'
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_int_task
+    columns: tenant_id, status, next_retry_at
 - module: integration
   migration: 03-database/flyway/integration/V1__init.sql
   table: idempotency_record
@@ -2202,7 +5149,53 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: user_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: api_code
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: idempotency_key
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: request_hash
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: response_code
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: response_body
+    type: JSON
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(16)
+    nullable: false
+    default: null
+  - name: expire_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_idem
+    columns: tenant_id, user_id, api_code, idempotency_key
 - module: integration
   migration: 03-database/flyway/integration/V1__init.sql
   table: audit_log
@@ -2211,7 +5204,65 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: operator_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: support_session_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: business_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: business_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: action
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: before_snapshot
+    type: JSON
+    nullable: true
+    default: null
+  - name: after_snapshot
+    type: JSON
+    nullable: true
+    default: null
+  - name: reason
+    type: VARCHAR(1024)
+    nullable: true
+    default: null
+  - name: ip
+    type: VARCHAR(64)
+    nullable: true
+    default: null
+  - name: device
+    type: VARCHAR(256)
+    nullable: true
+    default: null
+  - name: trace_id
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_audit_biz
+    columns: tenant_id, business_type, business_id, created_at
 - module: integration
   migration: 03-database/flyway/integration/V1__init.sql
   table: export_task
@@ -2220,7 +5271,49 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: task_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: export_type
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: request_json
+    type: JSON
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: file_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: created_by
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: completed_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_export_task
+    columns: tenant_id, task_no
 - module: integration
   migration: 03-database/flyway/integration/V1__init.sql
   table: import_task
@@ -2228,8 +5321,54 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: task_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: import_type
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: source_file_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: total_rows
+    type: BIGINT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: success_rows
+    type: BIGINT
+    nullable: false
+    default: '0'
+  - name: failed_rows
+    type: BIGINT
+    nullable: false
+    default: '0'
+  - name: created_by
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_import_task
+    columns: tenant_id, task_no
 - module: invoice
   migration: 03-database/flyway/invoice/V1__init.sql
   table: invoice_application
@@ -2237,86 +5376,72 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
-    default: '0'
-  indexes: []
-- module: invoice
-  migration: 03-database/flyway/invoice/V1__init.sql
-  table: invoice_application_item
-  columns:
-  - name: id
+    default: null
+  - name: tenant_id
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
-- module: invoice
-  migration: 03-database/flyway/invoice/V1__init.sql
-  table: invoice
-  columns:
-  - name: id
-    type: BIGINT
-    nullable: false
-    default: '0'
-  indexes: []
-- module: invoice
-  migration: 03-database/flyway/invoice/V1__init.sql
-  table: invoice_item
-  columns:
-  - name: id
-    type: BIGINT
-    nullable: false
-    default: null
-  indexes: []
-- module: invoice
-  migration: 03-database/flyway/invoice/V1__init.sql
-  table: invoice_relation
-  columns:
-  - name: id
-    type: BIGINT
-    nullable: false
-    default: null
-  indexes: []
-- module: invoice
-  migration: 03-database/flyway/invoice/V1__init.sql
-  table: invoice_red_flush_application
-  columns:
-  - name: id
-    type: BIGINT
-    nullable: false
-    default: null
-  indexes: []
-- module: invoice
-  migration: 03-database/flyway/invoice/V2__invoice_email_delivery.sql
-  table: invoice_delivery_instruction
-  columns:
-  - name: id
-    type: BIGINT
-    nullable: false
-    default: null
-  - name: application_id
-    type: BIGINT
-    nullable: false
-    default: null
-  - name: source
-    type: VARCHAR(32)
-    nullable: false
-    default: null
-  - name: template_code
+  - name: application_no
     type: VARCHAR(64)
     nullable: false
     default: null
-  - name: recipient_set_hash
-    type: VARCHAR(128)
+  - name: customer_id
+    type: BIGINT
     nullable: false
     default: null
-  - name: notification_message_id
+  - name: invoice_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: title
+    type: VARCHAR(256)
+    nullable: false
+    default: null
+  - name: tax_no_ciphertext
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: bank_name
+    type: VARCHAR(256)
+    nullable: true
+    default: null
+  - name: bank_account_ciphertext
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: registered_address
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: registered_phone_ciphertext
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: requested_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: submitted_by
     type: BIGINT
     nullable: true
     default: null
-  - name: requested_at
+  - name: submitted_at
     type: DATETIME(3)
-    nullable: false
+    nullable: true
     default: null
-  - name: failure_code
+  - name: approved_by
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: approved_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: provider_request_no
     type: VARCHAR(128)
     nullable: true
     default: null
@@ -2325,6 +5450,352 @@ tables:
     nullable: false
     default: '0'
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_inv_app
+    columns: tenant_id, application_no
+  - type: UNIQUE KEY
+    name: uk_inv_provider_req
+    columns: provider_request_no
+- module: invoice
+  migration: 03-database/flyway/invoice/V1__init.sql
+  table: invoice_application_item
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: application_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: allocation_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: requested_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_invapp_alloc
+    columns: tenant_id, allocation_id
+- module: invoice
+  migration: 03-database/flyway/invoice/V1__init.sql
+  table: invoice
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: invoice_no
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: application_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: provider
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: provider_invoice_id
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: invoice_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: blue_or_red
+    type: VARCHAR(8)
+    nullable: false
+    default: null
+  - name: amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: tax_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: '0'
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: issued_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: pdf_file_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: ofd_file_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: created_by
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: updated_by
+    type: BIGINT
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_invoice_no
+    columns: tenant_id, invoice_no
+  - type: UNIQUE KEY
+    name: uk_provider_invoice
+    columns: provider, provider_invoice_id
+- module: invoice
+  migration: 03-database/flyway/invoice/V1__init.sql
+  table: invoice_item
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: invoice_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: item_name
+    type: VARCHAR(256)
+    nullable: false
+    default: null
+  - name: tax_rate
+    type: DECIMAL(20,8)
+    nullable: true
+    default: null
+  - name: amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: tax_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_invoice_item
+    columns: tenant_id, invoice_id
+- module: invoice
+  migration: 03-database/flyway/invoice/V1__init.sql
+  table: invoice_relation
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: source_invoice_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: target_invoice_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: relation_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_inv_relation
+    columns: tenant_id, source_invoice_id, target_invoice_id, relation_type
+- module: invoice
+  migration: 03-database/flyway/invoice/V1__init.sql
+  table: invoice_red_flush_application
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: application_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: original_invoice_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: reason
+    type: VARCHAR(512)
+    nullable: false
+    default: null
+  - name: requested_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: workflow_instance_id
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: provider_request_no
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_red_app
+    columns: tenant_id, application_no
+  - type: UNIQUE KEY
+    name: uk_red_provider_req
+    columns: provider_request_no
+- module: invoice
+  migration: 03-database/flyway/invoice/V2__invoice_email_delivery.sql
+  table: invoice_delivery_instruction
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: invoice_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: application_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: delivery_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: source
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: parent_instruction_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: template_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: subject_snapshot
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: recipient_set_hash
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: dedup_key
+    type: VARCHAR(256)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: notification_message_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: requested_by
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: requested_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: sent_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: failure_code
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: failure_message
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: KEY
     name: idx_invoice_delivery_invoice
     columns: tenant_id, invoice_id, requested_at
@@ -2342,19 +5813,38 @@ tables:
     type: BIGINT
     nullable: false
     default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: instruction_id
+    type: BIGINT
+    nullable: false
+    default: null
   - name: recipient_type
     type: VARCHAR(16)
+    nullable: false
+    default: null
+  - name: email_ciphertext
+    type: VARCHAR(1024)
     nullable: false
     default: null
   - name: email_hash
     type: VARCHAR(128)
     nullable: false
     default: null
+  - name: display_name
+    type: VARCHAR(256)
+    nullable: true
+    default: null
   - name: created_at
     type: DATETIME(3)
     nullable: false
     default: null
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: KEY
     name: idx_invoice_delivery_recipient
     columns: tenant_id, instruction_id
@@ -2369,31 +5859,66 @@ tables:
     type: BIGINT
     nullable: false
     default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: rule_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
   - name: business_event_type
     type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: category
+    type: VARCHAR(32)
     nullable: false
     default: null
   - name: recipient_strategy
     type: VARCHAR(64)
     nullable: false
     default: null
+  - name: channel_json
+    type: JSON
+    nullable: false
+    default: null
   - name: template_mapping_json
     type: JSON
+    nullable: false
+    default: null
+  - name: fallback_policy
+    type: VARCHAR(32)
     nullable: false
     default: '''NONE'''
   - name: quiet_hour_policy
     type: VARCHAR(32)
     nullable: false
     default: '''DEFAULT'''
+  - name: priority
+    type: INT
+    nullable: false
+    default: '100'
   - name: status
     type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: version
+    type: INT
     nullable: false
     default: '0'
   - name: created_at
     type: DATETIME(3)
     nullable: false
     default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_notification_rule
     columns: tenant_id, rule_code
@@ -2408,20 +5933,48 @@ tables:
     type: BIGINT
     nullable: false
     default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: template_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
   - name: channel
     type: VARCHAR(32)
     nullable: false
     default: null
+  - name: category
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: version_no
+    type: INT
+    nullable: false
+    default: null
   - name: subject_template
     type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: body_template
+    type: MEDIUMTEXT
     nullable: false
     default: null
   - name: plain_text_template
     type: MEDIUMTEXT
     nullable: true
     default: null
+  - name: provider_template_ref
+    type: VARCHAR(256)
+    nullable: true
+    default: null
   - name: variable_schema_json
     type: JSON
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
     nullable: false
     default: null
   - name: created_at
@@ -2429,6 +5982,9 @@ tables:
     nullable: false
     default: null
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_notification_template
     columns: tenant_id, template_code, channel, version_no
@@ -2443,23 +5999,59 @@ tables:
     type: BIGINT
     nullable: false
     default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: message_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
   - name: category
     type: VARCHAR(32)
     nullable: false
     default: null
+  - name: business_type
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: business_id
+    type: BIGINT
+    nullable: false
+    default: null
   - name: business_event_id
     type: VARCHAR(64)
+    nullable: true
+    default: null
+  - name: rule_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: trigger_key
+    type: VARCHAR(128)
     nullable: false
     default: null
   - name: recipient_ref_type
     type: VARCHAR(32)
     nullable: false
     default: null
+  - name: recipient_ref_id
+    type: BIGINT
+    nullable: true
+    default: null
   - name: status
     type: VARCHAR(32)
     nullable: false
+    default: null
+  - name: priority
+    type: INT
+    nullable: false
     default: '100'
   - name: scheduled_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: completed_at
     type: DATETIME(3)
     nullable: true
     default: null
@@ -2467,11 +6059,22 @@ tables:
     type: VARCHAR(256)
     nullable: false
     default: null
+  - name: trace_id
+    type: VARCHAR(64)
+    nullable: true
+    default: null
   - name: created_at
     type: DATETIME(3)
     nullable: false
     default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_notification_message_dedup
     columns: tenant_id, dedup_key
@@ -2489,35 +6092,83 @@ tables:
     type: BIGINT
     nullable: false
     default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: notification_message_id
+    type: BIGINT
+    nullable: false
+    default: null
   - name: channel
     type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: template_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: template_version
+    type: INT
     nullable: false
     default: null
   - name: recipient_type
     type: VARCHAR(16)
     nullable: false
     default: '''TO'''
+  - name: recipient_address_ciphertext
+    type: VARCHAR(1024)
+    nullable: false
+    default: null
   - name: recipient_address_hash
     type: VARCHAR(128)
     nullable: false
     default: null
+  - name: provider_code
+    type: VARCHAR(64)
+    nullable: true
+    default: null
   - name: provider_message_id
     type: VARCHAR(256)
+    nullable: true
+    default: null
+  - name: provider_request_no
+    type: VARCHAR(128)
     nullable: false
     default: null
   - name: status
     type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: result_uncertain
+    type: TINYINT
     nullable: false
     default: '0'
   - name: retry_count
     type: INT
     nullable: false
     default: '0'
+  - name: next_retry_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
   - name: content_hash
     type: VARCHAR(128)
     nullable: true
     default: null
+  - name: last_error_code
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: last_error_message
+    type: VARCHAR(512)
+    nullable: true
+    default: null
   - name: sent_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: delivered_at
     type: DATETIME(3)
     nullable: true
     default: null
@@ -2525,14 +6176,24 @@ tables:
     type: INT
     nullable: false
     default: '0'
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_notification_delivery_req
     columns: provider_request_no
   - type: UNIQUE KEY
     name: uk_notification_delivery_dedup
-    columns: tenant_id, notification_message_id, channel, recipient_address_hash,
-      template_version
+    columns: tenant_id, notification_message_id, channel, recipient_address_hash, template_version
   - type: KEY
     name: idx_notification_delivery_retry
     columns: tenant_id, status, next_retry_at
@@ -2547,16 +6208,36 @@ tables:
     type: BIGINT
     nullable: false
     default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: delivery_id
+    type: BIGINT
+    nullable: false
+    default: null
   - name: attempt_no
     type: INT
+    nullable: false
+    default: null
+  - name: provider_request_no
+    type: VARCHAR(128)
     nullable: false
     default: null
   - name: result_type
     type: VARCHAR(32)
     nullable: false
     default: null
+  - name: provider_http_status
+    type: INT
+    nullable: true
+    default: null
   - name: provider_error_code
     type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: duration_ms
+    type: BIGINT
     nullable: true
     default: null
   - name: attempted_at
@@ -2564,6 +6245,9 @@ tables:
     nullable: false
     default: null
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_notification_attempt
     columns: tenant_id, delivery_id, attempt_no
@@ -2578,7 +6262,23 @@ tables:
     type: BIGINT
     nullable: false
     default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: subject_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: subject_id
+    type: BIGINT
+    nullable: false
+    default: null
   - name: marketing_email_enabled
+    type: TINYINT
+    nullable: false
+    default: '1'
+  - name: marketing_sms_enabled
     type: TINYINT
     nullable: false
     default: '1'
@@ -2586,15 +6286,30 @@ tables:
     type: TINYINT
     nullable: false
     default: '1'
+  - name: transactional_sms_enabled
+    type: TINYINT
+    nullable: false
+    default: '1'
   - name: preferred_channel
     type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: timezone
+    type: VARCHAR(64)
     nullable: true
     default: null
   - name: version
     type: INT
     nullable: false
     default: '0'
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_notification_pref
     columns: tenant_id, subject_type, subject_id
@@ -2606,27 +6321,58 @@ tables:
     type: BIGINT
     nullable: false
     default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: channel
+    type: VARCHAR(32)
+    nullable: false
+    default: null
   - name: provider_mode
     type: VARCHAR(32)
     nullable: false
     default: null
+  - name: provider_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
   - name: sender_identity
     type: VARCHAR(256)
+    nullable: true
+    default: null
+  - name: credential_ref
+    type: VARCHAR(512)
     nullable: false
     default: null
   - name: callback_secret_ref
     type: VARCHAR(512)
     nullable: true
     default: null
+  - name: config_json
+    type: JSON
+    nullable: true
+    default: null
   - name: status
     type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: version
+    type: INT
     nullable: false
     default: '0'
   - name: created_at
     type: DATETIME(3)
     nullable: false
     default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_notification_provider
     columns: tenant_id, channel, provider_code
@@ -2638,22 +6384,306 @@ tables:
     type: BIGINT
     nullable: false
     default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: channel
+    type: VARCHAR(32)
+    nullable: false
+    default: null
   - name: recipient_address_hash
     type: VARCHAR(128)
     nullable: false
     default: null
+  - name: reason_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
   - name: reason
     type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: effective_from
+    type: DATETIME(3)
     nullable: false
+    default: null
+  - name: effective_to
+    type: DATETIME(3)
+    nullable: true
     default: null
   - name: created_at
     type: DATETIME(3)
     nullable: false
     default: null
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: KEY
     name: idx_notification_suppress
     columns: tenant_id, channel, recipient_address_hash, effective_from, effective_to
+- module: organization
+  migration: 03-database/flyway/organization/V1__init.sql
+  table: organization_unit
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: parent_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: org_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: org_name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: org_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: path
+    type: VARCHAR(1024)
+    nullable: false
+    default: null
+  - name: level_no
+    type: INT
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_org
+    columns: tenant_id, org_code
+  - type: KEY
+    name: idx_org_parent
+    columns: tenant_id, parent_id
+- module: organization
+  migration: 03-database/flyway/organization/V1__init.sql
+  table: management_team
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: team_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: team_name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_team
+    columns: tenant_id, team_code
+- module: organization
+  migration: 03-database/flyway/organization/V1__init.sql
+  table: management_team_member
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: team_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: membership_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: role_code
+    type: VARCHAR(64)
+    nullable: true
+    default: null
+  - name: effective_from
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: effective_to
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_team_member
+    columns: tenant_id, team_id, status
+- module: organization
+  migration: 03-database/flyway/organization/V1__init.sql
+  table: team_resource_relation
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: team_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: resource_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: relation_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: effective_from
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: effective_to
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_team_res
+    columns: tenant_id, resource_type, resource_id
+- module: organization
+  migration: 03-database/flyway/organization/V1__init.sql
+  table: resource_acl
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: principal_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: principal_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: resource_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: permission_code
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: effective_from
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: effective_to
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_acl_resource
+    columns: tenant_id, resource_type, resource_id
+- module: organization
+  migration: 03-database/flyway/organization/V1__init.sql
+  table: ownership_history
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: business_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: business_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: old_owner_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: new_owner_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: reason
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: changed_by
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: changed_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_owner_hist
+    columns: tenant_id, business_type, business_id, changed_at
 - module: owner-settlement
   migration: 03-database/flyway/owner-settlement/V1__init.sql
   table: property_owner
@@ -2934,8 +6964,72 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: payment_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: channel
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: currency
+    type: CHAR(3)
+    nullable: false
+    default: null
+  - name: amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: expire_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: provider_merchant_ref
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: idempotency_key
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: version
+    type: INT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_payment_no
+    columns: payment_no
+  - type: UNIQUE KEY
+    name: uk_payment_idem
+    columns: tenant_id, idempotency_key
+  - type: KEY
+    name: idx_payment_customer
+    columns: tenant_id, customer_id, status
 - module: payment
   migration: 03-database/flyway/payment/V1__init.sql
   table: payment_business_relation
@@ -2944,7 +7038,33 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: payment_order_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: business_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: business_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: expected_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_pay_biz
+    columns: tenant_id, business_type, business_id
 - module: payment
   migration: 03-database/flyway/payment/V1__init.sql
   table: payment_transaction
@@ -2953,7 +7073,56 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: payment_order_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: channel
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: channel_trade_no
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: transaction_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: currency
+    type: CHAR(3)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: occurred_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: raw_payload_hash
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_channel_trade
+    columns: channel, channel_trade_no
+  - type: KEY
+    name: idx_pt_order
+    columns: tenant_id, payment_order_id
 - module: payment
   migration: 03-database/flyway/payment/V1__init.sql
   table: payment_callback_log
@@ -2962,7 +7131,49 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: '0'
+  - name: channel
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: request_id
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: merchant_ref
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: payment_no
+    type: VARCHAR(64)
+    nullable: true
+    default: null
+  - name: body_hash
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: signature_valid
+    type: TINYINT
+    nullable: false
+    default: null
+  - name: process_result
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: received_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_cb_payment
+    columns: payment_no, received_at
 - module: payment
   migration: 03-database/flyway/payment/V1__init.sql
   table: refund_order
@@ -2970,8 +7181,53 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: refund_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: payment_order_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: original_transaction_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: refund_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: reason
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: provider_refund_no
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: version
+    type: INT
+    nullable: false
     default: '0'
-  indexes: []
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_refund_no
+    columns: refund_no
+  - type: KEY
+    name: idx_refund_payment
+    columns: tenant_id, payment_order_id, status
 - module: payment
   migration: 03-database/flyway/payment/V1__init.sql
   table: refund_transaction
@@ -2980,7 +7236,37 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: refund_order_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: provider_refund_no
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: occurred_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_provider_refund
+    columns: provider_refund_no
 - module: payment
   migration: 03-database/flyway/payment/V2__payment_domain_hardening.sql
   table: tenant_payment_merchant
@@ -3361,6 +7647,259 @@ tables:
   - type: KEY
     name: idx_refund_state_order
     columns: tenant_id, refund_order_id, created_at
+- module: reservation
+  migration: 03-database/flyway/reservation/V1__init.sql
+  table: resource_schedule_guard
+  columns:
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: schedule_version
+    type: BIGINT
+    nullable: false
+    default: '0'
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: tenant_id, resource_unit_id
+- module: reservation
+  migration: 03-database/flyway/reservation/V1__init.sql
+  table: resource_availability
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: start_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: end_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: reason_type
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: reason
+    type: VARCHAR(512)
+    nullable: true
+    default: null
+  - name: source_type
+    type: VARCHAR(32)
+    nullable: true
+    default: null
+  - name: source_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_avail
+    columns: tenant_id, resource_unit_id, status, start_time, end_time
+- module: reservation
+  migration: 03-database/flyway/reservation/V1__init.sql
+  table: resource_occupancy
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: occupancy_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: start_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: end_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: source_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: source_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_occ_time
+    columns: tenant_id, resource_unit_id, status, start_time, end_time
+  - type: KEY
+    name: idx_occ_source
+    columns: tenant_id, source_type, source_id
+- module: reservation
+  migration: 03-database/flyway/reservation/V1__init.sql
+  table: reservation
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: reservation_no
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: customer_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: opportunity_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: quotation_version_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: hold_expire_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: deposit_required
+    type: TINYINT
+    nullable: false
+    default: '0'
+  - name: deposit_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: '0'
+  - name: deposit_paid_amount
+    type: DECIMAL(18,2)
+    nullable: false
+    default: '0'
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: converted_agreement_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_resv
+    columns: tenant_id, reservation_no
+  - type: KEY
+    name: idx_resv_expire
+    columns: tenant_id, status, hold_expire_at
+  - type: KEY
+    name: idx_resv_customer
+    columns: tenant_id, customer_id
+- module: reservation
+  migration: 03-database/flyway/reservation/V1__init.sql
+  table: reservation_item
+  columns:
+  - name: id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: reservation_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: resource_unit_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: offering_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: start_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: end_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: quoted_price
+    type: DECIMAL(18,2)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_resv_item
+    columns: tenant_id, resource_unit_id, start_time, end_time
 - module: tax
   migration: 03-database/flyway/tax/V1__init.sql
   table: tax_category
@@ -3371,8 +7910,8 @@ tables:
     default: null
   - name: tenant_id
     type: BIGINT
-    nullable: true
-    default: null
+    nullable: false
+    default: '0'
   - name: category_code
     type: VARCHAR(64)
     nullable: false
@@ -3410,8 +7949,8 @@ tables:
     default: null
   - name: tenant_id
     type: BIGINT
-    nullable: true
-    default: null
+    nullable: false
+    default: '0'
   - name: jurisdiction_code
     type: VARCHAR(64)
     nullable: false
@@ -3425,7 +7964,7 @@ tables:
     nullable: false
     default: null
   - name: tax_rate
-    type: DECIMAL(12,8)
+    type: DECIMAL(20,8)
     nullable: false
     default: null
   - name: effective_from
@@ -3461,8 +8000,7 @@ tables:
     columns: tenant_id, jurisdiction_code, tax_category_code, version_no
   - type: KEY
     name: idx_tax_rule_active
-    columns: tenant_id, jurisdiction_code, tax_category_code, status, effective_from,
-      effective_to
+    columns: tenant_id, jurisdiction_code, tax_category_code, status, effective_from, effective_to
 - module: tenant
   migration: 03-database/flyway/tenant/V1__init.sql
   table: tenant
@@ -3471,26 +8009,76 @@ tables:
     type: BIGINT
     nullable: false
     default: null
+  - name: tenant_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: tenant_name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
   - name: tenant_type
     type: VARCHAR(32)
     nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: package_id
+    type: BIGINT
+    nullable: true
     default: null
   - name: isolation_mode
     type: VARCHAR(32)
     nullable: false
     default: '''SHARED_DATABASE_SHARED_SCHEMA'''
+  - name: timezone
+    type: VARCHAR(64)
+    nullable: false
+    default: '''Asia/Shanghai'''
   - name: currency
     type: CHAR(3)
     nullable: false
     default: '''CNY'''
+  - name: locale
+    type: VARCHAR(32)
+    nullable: false
+    default: '''zh-CN'''
+  - name: expires_at
+    type: DATETIME(3)
+    nullable: true
+    default: null
   - name: created_by
     type: BIGINT
+    nullable: true
+    default: null
+  - name: created_at
+    type: DATETIME(3)
     nullable: false
     default: CURRENT_TIMESTAMP(3)
+  - name: updated_by
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: CURRENT_TIMESTAMP(3)
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
   indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
   - type: UNIQUE KEY
     name: uk_tenant_code
-    columns: tenant_code), KEY idx_tenant_status(status
+    columns: tenant_code
+  - type: KEY
+    name: idx_tenant_status
+    columns: status
 - module: tenant
   migration: 03-database/flyway/tenant/V1__init.sql
   table: tenant_package
@@ -3499,7 +8087,29 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: package_code
+    type: VARCHAR(64)
+    nullable: false
+    default: null
+  - name: package_name
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: capability_json
+    type: JSON
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_pkg_code
+    columns: package_code
 - module: tenant
   migration: 03-database/flyway/tenant/V1__init.sql
   table: tenant_quota
@@ -3507,8 +8117,42 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: max_users
+    type: BIGINT
+    nullable: false
     default: '100'
-  indexes: []
+  - name: max_assets
+    type: BIGINT
+    nullable: false
+    default: '1000'
+  - name: max_resources
+    type: BIGINT
+    nullable: false
+    default: '10000'
+  - name: max_storage_bytes
+    type: BIGINT
+    nullable: false
+    default: '10737418240'
+  - name: max_monthly_api_calls
+    type: BIGINT
+    nullable: false
+    default: '1000000'
+  - name: version
+    type: INT
+    nullable: false
+    default: '0'
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_quota_tenant
+    columns: tenant_id
 - module: tenant
   migration: 03-database/flyway/tenant/V1__init.sql
   table: tenant_config
@@ -3516,8 +8160,49 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: config_key
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: config_value
+    type: TEXT
+    nullable: true
+    default: null
+  - name: value_type
+    type: VARCHAR(32)
+    nullable: false
     default: '''STRING'''
-  indexes: []
+  - name: effective_from
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: effective_to
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: version_no
+    type: INT
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_tenant_cfg_ver
+    columns: tenant_id, config_key, version_no
+  - type: KEY
+    name: idx_tenant_cfg_active
+    columns: tenant_id, config_key, status
 - module: tenant
   migration: 03-database/flyway/tenant/V1__init.sql
   table: tenant_feature
@@ -3525,8 +8210,38 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: feature_key
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: enabled
+    type: TINYINT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: rollout_percentage
+    type: INT
+    nullable: false
+    default: '100'
+  - name: effective_from
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  - name: effective_to
+    type: DATETIME(3)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_tenant_feature
+    columns: tenant_id, feature_key
 - module: tenant
   migration: 03-database/flyway/tenant/V1__init.sql
   table: tenant_route
@@ -3534,8 +8249,47 @@ tables:
   - name: tenant_id
     type: BIGINT
     nullable: false
+    default: null
+  - name: route_type
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: datasource_key
+    type: VARCHAR(128)
+    nullable: false
+    default: null
+  - name: schema_name
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: region
+    type: VARCHAR(64)
+    nullable: true
+    default: null
+  - name: storage_namespace
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: search_namespace
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: route_version
+    type: BIGINT
+    nullable: false
     default: '0'
-  indexes: []
+  - name: updated_at
+    type: DATETIME(3)
+    nullable: false
+    default: CURRENT_TIMESTAMP(3)
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: tenant_id
 - module: tenant
   migration: 03-database/flyway/tenant/V1__init.sql
   table: tenant_branding
@@ -3544,7 +8298,36 @@ tables:
     type: BIGINT
     nullable: false
     default: null
-  indexes: []
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: brand_name
+    type: VARCHAR(128)
+    nullable: true
+    default: null
+  - name: logo_file_id
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: theme_json
+    type: JSON
+    nullable: true
+    default: null
+  - name: custom_domain
+    type: VARCHAR(255)
+    nullable: true
+    default: null
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: UNIQUE KEY
+    name: uk_brand_tenant
+    columns: tenant_id
+  - type: UNIQUE KEY
+    name: uk_brand_domain
+    columns: custom_domain
 - module: tenant
   migration: 03-database/flyway/tenant/V1__init.sql
   table: support_session
@@ -3552,5 +8335,47 @@ tables:
   - name: id
     type: BIGINT
     nullable: false
+    default: null
+  - name: platform_user_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: tenant_id
+    type: BIGINT
+    nullable: false
+    default: null
+  - name: reason
+    type: VARCHAR(512)
+    nullable: false
+    default: null
+  - name: permissions_json
+    type: JSON
+    nullable: false
+    default: null
+  - name: approved_by
+    type: BIGINT
+    nullable: true
+    default: null
+  - name: start_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: expire_time
+    type: DATETIME(3)
+    nullable: false
+    default: null
+  - name: status
+    type: VARCHAR(32)
+    nullable: false
+    default: null
+  - name: created_at
+    type: DATETIME(3)
+    nullable: false
     default: CURRENT_TIMESTAMP(3)
-  indexes: []
+  indexes:
+  - type: PRIMARY KEY
+    name: null
+    columns: id
+  - type: KEY
+    name: idx_support_tenant
+    columns: tenant_id, status, expire_time

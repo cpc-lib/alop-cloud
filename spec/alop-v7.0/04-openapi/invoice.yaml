@@ -237,8 +237,8 @@ components:
                 type: integer
                 format: int64
               amount:
-                type: number
-                format: decimal
+                type: string
+                pattern: ^\d+(\.\d{1,2})?$
         deliveryMode:
           type: string
           enum:
@@ -289,7 +289,7 @@ components:
       - reason
       properties:
         amount:
-          type: number
-          format: decimal
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
         reason:
           type: string

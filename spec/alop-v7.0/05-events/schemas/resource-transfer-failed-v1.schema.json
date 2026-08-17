@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agreement.resource-transfer.failed.v1",
+  "title": "ResourceTransferFailed",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateType",
+    "aggregateId",
+    "aggregateVersion",
+    "tenantId",
+    "traceId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eventType": {
+      "const": "agreement.resource-transfer.failed.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "aggregateType": {
+      "const": "ResourceTransfer"
+    },
+    "aggregateId": {
+      "type": "string"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "correlationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "transferId",
+        "transferNo",
+        "agreementId",
+        "failureStage",
+        "failureReason"
+      ],
+      "properties": {
+        "transferId": {
+          "type": "integer"
+        },
+        "transferNo": {
+          "type": "string"
+        },
+        "agreementId": {
+          "type": "integer"
+        },
+        "failureStage": {
+          "type": "string"
+        },
+        "failureReason": {
+          "type": "string"
+        },
+        "sourceReleased": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

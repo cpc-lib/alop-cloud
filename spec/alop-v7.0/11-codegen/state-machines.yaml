@@ -1,3 +1,23 @@
+# =============================================================================
+# ALOP-SaaS V7.0 State Machines - CANONICAL SOURCE (frozen codegen contract)
+# -----------------------------------------------------------------------------
+# This file is the single canonical source of truth for aggregate state
+# machines. Domain STATE-MACHINE.md files must stay consistent with this file.
+# Conflict resolution precedence:
+#   1. 11-codegen/state-machines.yaml  (this file, canonical)
+#   2. 02-domain/*/DOMAIN-SPEC.md
+#   3. 02-domain/*/STATE-MACHINE.md    (domain draft)
+# Any change to a machine below requires an ADR and must be mirrored into the
+# corresponding domain STATE-MACHINE.md and 11-codegen/STATE-MACHINE-CATALOG.md
+# in the same change.
+# Conventions:
+#   - States: UPPER_SNAKE_CASE; externally exposed state names must match the
+#     frozen 04-openapi enums where such enums exist.
+#   - Transition triggers: lowerCamelCase imperative commands. Transitions that
+#     consume integration events use the eventType naming of
+#     05-events/event-registry.yaml (dotted + v1).
+#   - `# decision:` comments record how spec-source conflicts were resolved.
+# =============================================================================
 version: '7.0'
 machines:
   Tenant:
@@ -243,6 +263,18 @@ machines:
     - - OVERDUE
       - writeOff
       - WRITTEN_OFF
+  # decision: PaymentOrder is the money-safety critical machine.
+  # - CLOSED -> SUCCESS (recordLateSuccess) is mandatory: MASTER-SPEC-V7.0 §17.6
+  #   and payment/DOMAIN-SPEC.md §16 (late provider success must never drop a
+  #   real money fact; only the dedicated command may perform this transition).
+  # - No order-level UNKNOWN state: payment/STATE-MACHINE.md explicitly keeps
+  #   provider uncertainty on PaymentAttempt / RefundOrder; the read model
+  #   reports processingState=UNKNOWN while the order stays PAYING.
+  # - FAILED kept as internal terminal state per approved fix plan (OpenAPI
+  #   PaymentOrderView.status simply does not expose it).
+  # - close unified into one command name (covers provider-confirmed close and
+  #   all-attempts-failed-and-expired close; guards live in the domain layer).
+  # - PARTIALLY_REFUNDED self-loop: multiple partial refunds accumulate.
   PaymentOrder:
     initial: CREATED
     transitions:
@@ -250,7 +282,7 @@ machines:
       - startPaying
       - PAYING
     - - PAYING
-      - succeed
+      - verifiedCallback
       - SUCCESS
     - - PAYING
       - failFinal
@@ -259,9 +291,15 @@ machines:
       - close
       - CLOSED
     - - PAYING
-      - closeIfProviderSafe
+      - close
       - CLOSED
+    - - CLOSED
+      - recordLateSuccess
+      - SUCCESS
     - - SUCCESS
+      - partialRefund
+      - PARTIALLY_REFUNDED
+    - - PARTIALLY_REFUNDED
       - partialRefund
       - PARTIALLY_REFUNDED
     - - SUCCESS
@@ -270,6 +308,12 @@ machines:
     - - PARTIALLY_REFUNDED
       - fullRefund
       - REFUNDED
+  # decision: PaymentAttempt aligned to payment/DOMAIN-SPEC.md §8, which is the
+  # most detailed narrative: INITIATED/PREPAY_CREATED/USER_PAYING may each end
+  # in FAILED/UNKNOWN/CLOSED/EXPIRED; success flows through USER_PAYING or out
+  # of UNKNOWN via callback/query evidence. USER_PAYING and EXPIRED are now
+  # first-class states (also frozen in 04-openapi/payment.yaml
+  # PaymentAttemptView.status). UNKNOWN self-loop = query stays uncertain.
   PaymentAttempt:
     initial: INITIATED
     transitions:
@@ -282,12 +326,48 @@ machines:
     - - INITIATED
       - uncertain
       - UNKNOWN
-    - - PREPAY_CREATED
-      - paid
-      - SUCCESS
-    - - PREPAY_CREATED
-      - expireOrClose
+    - - INITIATED
+      - expire
+      - EXPIRED
+    - - INITIATED
+      - close
       - CLOSED
+    - - PREPAY_CREATED
+      - clientLaunched
+      - USER_PAYING
+    - - PREPAY_CREATED
+      - providerFail
+      - FAILED
+    - - PREPAY_CREATED
+      - uncertain
+      - UNKNOWN
+    - - PREPAY_CREATED
+      - expire
+      - EXPIRED
+    - - PREPAY_CREATED
+      - close
+      - CLOSED
+    - - USER_PAYING
+      - paidCallback
+      - SUCCESS
+    - - USER_PAYING
+      - querySuccess
+      - SUCCESS
+    - - USER_PAYING
+      - queryFail
+      - FAILED
+    - - USER_PAYING
+      - queryUncertain
+      - UNKNOWN
+    - - USER_PAYING
+      - expire
+      - EXPIRED
+    - - USER_PAYING
+      - close
+      - CLOSED
+    - - UNKNOWN
+      - callbackSuccess
+      - SUCCESS
     - - UNKNOWN
       - querySuccess
       - SUCCESS
@@ -297,42 +377,154 @@ machines:
     - - UNKNOWN
       - queryClosed
       - CLOSED
-  InvoiceApplication:
+    - - UNKNOWN
+      - queryUncertain
+      - UNKNOWN
+  # decision: RefundOrder ported verbatim (transitions) from
+  # payment/STATE-MACHINE.md §3; status set matches DOMAIN-SPEC §18 and the
+  # frozen 04-openapi/payment.yaml RefundOrderView.status enum.
+  # UNKNOWN never releases the Finance refund reservation (self-loop keeps it);
+  # FAILED/CANCELLED release idempotently; SUCCESS confirms it exactly once.
+  # DRAFT submit targets PENDING_APPROVAL or, when tenant refund policy needs
+  # no approval, APPROVED directly (submitPreApproved).
+  RefundOrder:
     initial: DRAFT
     transitions:
     - - DRAFT
       - submit
       - PENDING_APPROVAL
+    - - DRAFT
+      - submitPreApproved
+      - APPROVED
     - - PENDING_APPROVAL
       - approve
       - APPROVED
+    - - PENDING_APPROVAL
+      - reject
+      - CANCELLED
     - - APPROVED
-      - requestProvider
-      - WAITING_PROVIDER
-    - - WAITING_PROVIDER
-      - submitted
-      - SUBMITTED
-    - - SUBMITTED
-      - processing
+      - sendProvider
       - PROCESSING
     - - PROCESSING
-      - issue
+      - providerSuccess
       - SUCCESS
     - - PROCESSING
-      - fail
+      - providerFail
       - FAILED
-    - - WAITING_PROVIDER
-      - uncertain
-      - UNKNOWN
     - - PROCESSING
-      - uncertain
+      - providerUncertain
       - UNKNOWN
+    - - UNKNOWN
+      - callbackSuccess
+      - SUCCESS
     - - UNKNOWN
       - querySuccess
       - SUCCESS
     - - UNKNOWN
       - queryFail
       - FAILED
+    - - UNKNOWN
+      - queryUncertain
+      - UNKNOWN
+    - - DRAFT
+      - cancel
+      - CANCELLED
+    - - APPROVED
+      - cancel
+      - CANCELLED
+  # decision: InvoiceApplication renamed to the invoice domain vocabulary
+  # (DRAFT -> SUBMITTED -> APPROVED -> ISSUING -> ISSUED/FAILED/UNKNOWN) per
+  # invoice/STATE-MACHINE.md + invoice/DOMAIN-SPEC.md; 04-openapi/invoice.yaml
+  # exposes no status enum, so the domain naming wins. The previous chain
+  # (WAITING_PROVIDER/SUBMITTED/PROCESSING/SUCCESS) is dropped.
+  InvoiceApplication:
+    initial: DRAFT
+    transitions:
+    - - DRAFT
+      - submit
+      - SUBMITTED
+    - - SUBMITTED
+      - approve
+      - APPROVED
+    - - APPROVED
+      - requestProvider
+      - ISSUING
+    - - ISSUING
+      - providerSuccess
+      - ISSUED
+    - - ISSUING
+      - providerFail
+      - FAILED
+    - - ISSUING
+      - providerUncertain
+      - UNKNOWN
+    - - UNKNOWN
+      - querySuccess
+      - ISSUED
+    - - UNKNOWN
+      - queryFail
+      - FAILED
+  # decision: red flush is modeled as the standalone RedFlushApplication
+  # aggregate (invoice/DOMAIN-SPEC.md aggregate roots +
+  # invoice_red_flush_application table + RequestRedFlush/QueryUnknownRedFlush
+  # commands), NOT as states on the Invoice entity. Invoice itself stays
+  # immutable history (red flush creates a new red invoice relation), so no
+  # Invoice machine exists. The former ISSUED -> RED_FLUSHING chain on Invoice
+  # is removed from drafts accordingly.
+  RedFlushApplication:
+    initial: DRAFT
+    transitions:
+    - - DRAFT
+      - submit
+      - RED_FLUSHING
+    - - RED_FLUSHING
+      - providerSuccess
+      - RED_FLUSHED
+    - - RED_FLUSHING
+      - providerFail
+      - FAILED
+    - - RED_FLUSHING
+      - providerUncertain
+      - UNKNOWN
+    - - UNKNOWN
+      - querySuccess
+      - RED_FLUSHED
+    - - UNKNOWN
+      - queryFail
+      - FAILED
+  # decision: InvoiceDeliveryInstruction ported from invoice/STATE-MACHINE.md
+  # (V6.4 email delivery). Independent from InvoiceApplication: email failure
+  # never reverts Invoice ISSUED.
+  InvoiceDeliveryInstruction:
+    initial: CREATED
+    transitions:
+    - - CREATED
+      - queue
+      - QUEUED
+    - - QUEUED
+      - start
+      - SENDING
+    - - SENDING
+      - markSent
+      - SENT
+    - - SENDING
+      - markPartiallySent
+      - PARTIALLY_SENT
+    - - CREATED
+      - failFinal
+      - FAILED
+    - - QUEUED
+      - failFinal
+      - FAILED
+    - - SENDING
+      - failFinal
+      - FAILED
+    - - CREATED
+      - cancel
+      - CANCELLED
+    - - QUEUED
+      - cancel
+      - CANCELLED
   SecurityDepositAccount:
     initial: REQUIRED
     transitions:
@@ -390,6 +582,42 @@ machines:
     - - REFUNDED
       - close
       - CLOSED
+  # decision: DunningCase added per finance/DOMAIN-SPEC.md (aggregate root,
+  # dunning_case table) and MASTER-SPEC-V7.0 §9. Escalation levels
+  # (D+1/D+3/D+7/D+15/D+30...) are an escalationLevel field, never states.
+  # close covers both settled-out and bad-debt closure.
+  DunningCase:
+    initial: OPEN
+    transitions:
+    - - OPEN
+      - promiseToPay
+      - PROMISED
+    - - PROMISED
+      - markKept
+      - KEPT
+    - - PROMISED
+      - markBroken
+      - BROKEN
+    - - BROKEN
+      - reopen
+      - OPEN
+    - - OPEN
+      - close
+      - CLOSED
+    - - PROMISED
+      - close
+      - CLOSED
+    - - KEPT
+      - close
+      - CLOSED
+    - - BROKEN
+      - close
+      - CLOSED
+  # decision: ResourceTransfer adds pre-signature cancellation. The states
+  # before supplementary signing (DRAFT/QUOTED/TARGET_HELD/PENDING_APPROVAL/
+  # APPROVED) may all cancel; EXECUTING -> FAILED kept. Cancellation after
+  # scheduling/execution is out of machine scope (handled by the persisted
+  # saga/compensation, see RESOURCE-TRANSFER-SPEC.md).
   ResourceTransfer:
     initial: DRAFT
     transitions:
@@ -420,6 +648,21 @@ machines:
     - - EXECUTING
       - fail
       - FAILED
+    - - DRAFT
+      - cancel
+      - CANCELLED
+    - - QUOTED
+      - cancel
+      - CANCELLED
+    - - TARGET_HELD
+      - cancel
+      - CANCELLED
+    - - PENDING_APPROVAL
+      - cancel
+      - CANCELLED
+    - - APPROVED
+      - cancel
+      - CANCELLED
   TaxRule:
     initial: DRAFT
     transitions:
@@ -441,6 +684,10 @@ machines:
     - - DRAFT
       - cancel
       - CANCELLED
+  # decision: Payable completed to the ap/DOMAIN-SPEC.md status list
+  # (OPEN, PARTIALLY_PAID, PAID, OVERDUE, CANCELLED, WRITTEN_OFF):
+  # OVERDUE -> PAID (settle), OPEN -> CANCELLED (cancel, only before
+  # irreversible financial effects), OPEN/OVERDUE -> WRITTEN_OFF (writeOff).
   Payable:
     initial: OPEN
     transitions:
@@ -459,6 +706,22 @@ machines:
     - - PARTIALLY_PAID
       - overdue
       - OVERDUE
+    - - OVERDUE
+      - settle
+      - PAID
+    - - OPEN
+      - cancel
+      - CANCELLED
+    - - OPEN
+      - writeOff
+      - WRITTEN_OFF
+    - - OVERDUE
+      - writeOff
+      - WRITTEN_OFF
+  # decision: OwnerSettlementBatch completed from owner-settlement/
+  # STATE-MACHINE.md: REJECTED -> DRAFT (revise), PAYING -> UNKNOWN ->
+  # PAID/FAILED (provider uncertainty during payout), APPROVED -> CANCELLED
+  # (only before payable creation, with audit - guard lives in domain layer).
   OwnerSettlementBatch:
     initial: DRAFT
     transitions:
@@ -474,15 +737,30 @@ machines:
     - - REVIEWING
       - reject
       - REJECTED
+    - - REJECTED
+      - revise
+      - DRAFT
     - - APPROVED
       - createPayable
       - PAYABLE_CREATED
+    - - APPROVED
+      - cancel
+      - CANCELLED
     - - PAYABLE_CREATED
       - pay
       - PAYING
     - - PAYING
       - paid
       - PAID
+    - - PAYING
+      - uncertain
+      - UNKNOWN
+    - - UNKNOWN
+      - querySuccess
+      - PAID
+    - - UNKNOWN
+      - queryFail
+      - FAILED
     - - PAID
       - close
       - CLOSED
@@ -523,6 +801,53 @@ machines:
       - correct
       - CORRECTED
     - - DRAFT
+      - cancel
+      - CANCELLED
+  # decision: MeterReading ported from utility-property-parking/STATE-MACHINE.md.
+  # BILLED is historical fact; correction closes the old version as CORRECTED
+  # and creates a new DRAFT version (event
+  # asset.utility-meter.reading-corrected.v1).
+  MeterReading:
+    initial: DRAFT
+    transitions:
+    - - DRAFT
+      - submit
+      - SUBMITTED
+    - - SUBMITTED
+      - autoValidateOk
+      - VERIFIED
+    - - SUBMITTED
+      - anomalyFound
+      - REVIEW_REQUIRED
+    - - REVIEW_REQUIRED
+      - approve
+      - VERIFIED
+    - - REVIEW_REQUIRED
+      - reject
+      - REJECTED
+    - - VERIFIED
+      - markBilled
+      - BILLED
+    - - VERIFIED
+      - correct
+      - CORRECTED
+    - - BILLED
+      - correct
+      - CORRECTED
+  # decision: ParkingVehicleBinding ported from utility-property-parking/
+  # STATE-MACHINE.md literal chain `PENDING -> ACTIVE -> ENDED/CANCELLED`.
+  # Changing vehicle = end old ACTIVE + create new binding; historical plate
+  # association is never overwritten in place.
+  ParkingVehicleBinding:
+    initial: PENDING
+    transitions:
+    - - PENDING
+      - activate
+      - ACTIVE
+    - - ACTIVE
+      - end
+      - ENDED
+    - - ACTIVE
       - cancel
       - CANCELLED
   OperationWorkOrder:
@@ -654,3 +979,61 @@ machines:
     - - IN_PROGRESS
       - cancelBeforeFinal
       - CANCELLED
+  # decision: NotificationMessage ported from notification/STATE-MACHINE.md.
+  NotificationMessage:
+    initial: CREATED
+    transitions:
+    - - CREATED
+      - queue
+      - QUEUED
+    - - QUEUED
+      - start
+      - PROCESSING
+    - - PROCESSING
+      - completeAll
+      - COMPLETED
+    - - PROCESSING
+      - completePartial
+      - PARTIALLY_COMPLETED
+    - - PROCESSING
+      - failFinal
+      - FAILED
+    - - CREATED
+      - cancel
+      - CANCELLED
+    - - QUEUED
+      - cancel
+      - CANCELLED
+  # decision: NotificationDelivery ported from notification/STATE-MACHINE.md.
+  # Uncertain provider results stay in SENDING with result_uncertain flag
+  # instead of sending a duplicate (guard in domain layer).
+  NotificationDelivery:
+    initial: PENDING
+    transitions:
+    - - PENDING
+      - send
+      - SENDING
+    - - SENDING
+      - providerAccepted
+      - SENT
+    - - SENDING
+      - tempFail
+      - RETRY_WAIT
+    - - SENDING
+      - finalFail
+      - FAILED
+    - - SENDING
+      - suppress
+      - SUPPRESSED
+    - - RETRY_WAIT
+      - retry
+      - SENDING
+    - - SENT
+      - deliveryReceipt
+      - DELIVERED
+    - - SENT
+      - bounce
+      - BOUNCED
+    - - SENT
+      - providerReject
+      - REJECTED

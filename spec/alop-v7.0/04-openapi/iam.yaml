@@ -1,0 +1,1022 @@
+openapi: 3.0.3
+info:
+  title: ALOP IAM API
+  version: 7.0.0
+  description: Identity, authentication, user, role, permission and tenant membership
+    APIs owned by alop-iam. Platform-level support session APIs allow time-boxed
+    platform staff access to a tenant per the MASTER-SPEC multi-tenant principle.
+servers:
+- url: /
+tags:
+- name: Auth
+- name: User
+- name: Role
+- name: Permission
+- name: TenantMembership
+- name: PlatformSupport
+paths:
+  /api/admin/v1/auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Login with account and password
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponseEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: false
+      x-alop-command: true
+  /api/admin/v1/auth/logout:
+    post:
+      tags:
+      - Auth
+      summary: Logout current session
+      operationId: logout
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: false
+      x-alop-command: true
+  /api/admin/v1/auth/me:
+    get:
+      tags:
+      - Auth
+      summary: Get current authenticated user profile and memberships
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: false
+  /api/admin/v1/auth/me/profile:
+    put:
+      tags:
+      - Auth
+      summary: Update current user profile
+      operationId: updateMyProfile
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: false
+      x-alop-command: true
+  /api/admin/v1/users:
+    get:
+      tags:
+      - User
+      summary: List tenant users
+      operationId: listUsers
+      parameters:
+      - name: keyword
+        in: query
+        schema:
+          type: string
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: pageNo
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      - name: pageSize
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 200
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/UserView'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+    post:
+      tags:
+      - User
+      summary: Create user under current tenant
+      operationId: createUser
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/users/{userId}:
+    get:
+      tags:
+      - User
+      summary: Get user detail
+      operationId: getUser
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+    put:
+      tags:
+      - User
+      summary: Update user
+      operationId: updateUser
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/users/{userId}/disable:
+    post:
+      tags:
+      - User
+      summary: Disable tenant user membership
+      description: Pending ownership/workflow tasks must be transferred or an explicit
+        transfer task must be created before disable.
+      operationId: disableUser
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisableUserRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/roles:
+    get:
+      tags:
+      - Role
+      summary: List tenant roles
+      operationId: listRoles
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/RoleView'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+    post:
+      tags:
+      - Role
+      summary: Create tenant role
+      operationId: createRole
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/roles/{roleId}:
+    put:
+      tags:
+      - Role
+      summary: Update role permissions
+      operationId: updateRole
+      parameters:
+      - name: roleId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoleRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/permissions:
+    get:
+      tags:
+      - Permission
+      summary: List permissions as a tree
+      operationId: getPermissionTree
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ApiResponseBase'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/PermissionNode'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+  /api/admin/v1/tenants/{tenantId}/memberships:
+    post:
+      tags:
+      - TenantMembership
+      summary: Add tenant membership for an existing user
+      operationId: addTenantMembership
+      parameters:
+      - name: tenantId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddTenantMembershipRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/admin/v1/tenants/{tenantId}/memberships/{membershipId}:
+    delete:
+      tags:
+      - TenantMembership
+      summary: Remove tenant membership
+      operationId: removeTenantMembership
+      parameters:
+      - name: tenantId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: membershipId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoveMembershipRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseBase'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+  /api/platform/v1/support-sessions:
+    post:
+      tags:
+      - PlatformSupport
+      summary: Open a time-boxed platform support session into a tenant
+      description: Platform staff must declare a reason and an explicit expiry. Sessions
+        are auditable and never grant cross-tenant data access outside the target
+        tenant.
+      operationId: createSupportSession
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSupportSessionRequest'
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportSessionEnvelope'
+        '400':
+          description: Validation/domain request error
+        '403':
+          description: Permission or tenant access denied
+        '409':
+          description: State/idempotency/concurrency conflict
+        '500':
+          description: Unexpected system error
+      x-alop-tenant-scoped: false
+      x-alop-command: true
+components:
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+  schemas:
+    ApiResponseBase:
+      type: object
+      required:
+      - code
+      - message
+      - traceId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        traceId:
+          type: string
+    LoginRequest:
+      type: object
+      required:
+      - account
+      - password
+      properties:
+        account:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Username, email or phone.
+        password:
+          type: string
+          minLength: 1
+          maxLength: 256
+          format: password
+        captchaToken:
+          type: string
+          description: Optional captcha verification token.
+        tenantCode:
+          type: string
+          description: Optional explicit tenant code for non-default tenants.
+    LoginResponse:
+      type: object
+      required:
+      - token
+      - tokenType
+      - expiresIn
+      - memberships
+      properties:
+        token:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          description: Token lifetime in seconds.
+        refreshToken:
+          type: string
+          nullable: true
+        memberships:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/MembershipView'
+    LoginResponseEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/LoginResponse'
+    MembershipView:
+      type: object
+      required:
+      - tenantId
+      - tenantCode
+      - tenantName
+      - status
+      properties:
+        tenantId:
+          type: integer
+          format: int64
+        tenantCode:
+          type: string
+        tenantName:
+          type: string
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - DISABLED
+          - SUSPENDED
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleView'
+        isDefault:
+          type: boolean
+          default: false
+    UserView:
+      type: object
+      required:
+      - userId
+      - username
+      - displayName
+      - status
+      properties:
+        userId:
+          type: integer
+          format: int64
+        username:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: string
+          format: email
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - DISABLED
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+    UserEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/UserView'
+    CurrentUserEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/CurrentUserView'
+    CurrentUserView:
+      type: object
+      required:
+      - userId
+      - username
+      - displayName
+      - memberships
+      properties:
+        userId:
+          type: integer
+          format: int64
+        username:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: string
+          format: email
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        permissions:
+          type: array
+          items:
+            type: string
+          description: Effective permission codes for the active membership.
+        memberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/MembershipView'
+    UpdateProfileRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+          maxLength: 128
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          maxLength: 32
+        avatarUrl:
+          type: string
+          maxLength: 1024
+    CreateUserRequest:
+      type: object
+      required:
+      - username
+      - displayName
+      - initialPassword
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 64
+        displayName:
+          type: string
+          maxLength: 128
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          maxLength: 32
+        initialPassword:
+          type: string
+          minLength: 8
+          maxLength: 256
+          format: password
+        roleIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        organizationUnitId:
+          type: integer
+          format: int64
+    UpdateUserRequest:
+      type: object
+      properties:
+        displayName:
+          type: string
+          maxLength: 128
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          maxLength: 32
+        avatarUrl:
+          type: string
+          maxLength: 1024
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - DISABLED
+        roleIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        version:
+          type: integer
+          minimum: 0
+    DisableUserRequest:
+      type: object
+      required:
+      - reason
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 512
+        transferToUserId:
+          type: integer
+          format: int64
+          description: Optional user to receive pending ownership/workflow tasks.
+        version:
+          type: integer
+          minimum: 0
+    RoleView:
+      type: object
+      required:
+      - roleId
+      - roleCode
+      - roleName
+      - status
+      properties:
+        roleId:
+          type: integer
+          format: int64
+        roleCode:
+          type: string
+        roleName:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - DISABLED
+        dataScope:
+          type: string
+          nullable: true
+        version:
+          type: integer
+          minimum: 0
+    CreateRoleRequest:
+      type: object
+      required:
+      - roleCode
+      - roleName
+      properties:
+        roleCode:
+          type: string
+          minLength: 1
+          maxLength: 64
+        roleName:
+          type: string
+          maxLength: 128
+        description:
+          type: string
+          maxLength: 512
+        dataScope:
+          type: string
+        permissionIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+    UpdateRoleRequest:
+      type: object
+      required:
+      - version
+      properties:
+        roleName:
+          type: string
+          maxLength: 128
+        description:
+          type: string
+          maxLength: 512
+        dataScope:
+          type: string
+        permissionIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - DISABLED
+        version:
+          type: integer
+          minimum: 0
+    PermissionNode:
+      type: object
+      required:
+      - permissionId
+      - permissionCode
+      - name
+      properties:
+        permissionId:
+          type: integer
+          format: int64
+        permissionCode:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+          - MENU
+          - ACTION
+          - DATA
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/PermissionNode'
+    AddTenantMembershipRequest:
+      type: object
+      required:
+      - userId
+      properties:
+        userId:
+          type: integer
+          format: int64
+        roleIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        organizationUnitId:
+          type: integer
+          format: int64
+        isDefault:
+          type: boolean
+          default: false
+    RemoveMembershipRequest:
+      type: object
+      required:
+      - reason
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 512
+        transferToUserId:
+          type: integer
+          format: int64
+        version:
+          type: integer
+          minimum: 0
+    CreateSupportSessionRequest:
+      type: object
+      required:
+      - tenantId
+      - reason
+      - expiresAt
+      properties:
+        tenantId:
+          type: integer
+          format: int64
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 512
+        expiresAt:
+          type: string
+          format: date-time
+          description: Mandatory explicit session expiry, must be in the near future.
+        scope:
+          type: string
+          maxLength: 256
+          description: Optional scoped justification (e.g. ticket id).
+    SupportSessionView:
+      type: object
+      required:
+      - sessionId
+      - tenantId
+      - staffUserId
+      - status
+      - expiresAt
+      properties:
+        sessionId:
+          type: string
+        tenantId:
+          type: integer
+          format: int64
+        staffUserId:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - EXPIRED
+          - REVOKED
+        reason:
+          type: string
+        scope:
+          type: string
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    SupportSessionEnvelope:
+      allOf:
+      - $ref: '#/components/schemas/ApiResponseBase'
+      - type: object
+        properties:
+          data:
+            $ref: '#/components/schemas/SupportSessionView'

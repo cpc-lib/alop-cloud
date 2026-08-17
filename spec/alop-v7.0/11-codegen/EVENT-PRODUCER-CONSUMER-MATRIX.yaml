@@ -1,221 +1,273 @@
+# GENERATED from 05-events/event-registry.yaml by scripts/generate_event_matrix.py - DO NOT EDIT
+# To change producer/consumer mappings, edit event-registry.yaml and re-run:
+#   python spec/alop-v7.0/scripts/generate_event_matrix.py
 version: '7.0'
+source: 05-events/event-registry.yaml
+generatedBy: scripts/generate_event_matrix.py
+eventCount: 43
 events:
+- eventType: agreement.agreement.closed.v1
+  producer: alop-agreement
+  consumers:
+  - alop-payment
+  - alop-finance
+  - alop-billing
+  - alop-search
+- eventType: agreement.agreement.effective.v1
+  producer: alop-agreement
+  consumers:
+  - alop-billing
+  - alop-finance
+  - alop-operations
 - eventType: agreement.agreement.expiring.v1
-  version: '1.0'
   producer: alop-agreement
   consumers:
   - alop-crm
   - alop-notification
-  schema: 05-events/schemas/agreement-expiring-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
 - eventType: agreement.agreement.party-changed.v1
-  version: '1.0'
   producer: alop-agreement
   consumers: []
-  schema: 05-events/schemas/agreement-party-changed-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
 - eventType: agreement.agreement.signed.v1
-  version: '1.0'
   producer: alop-agreement
   consumers:
   - alop-billing
   - alop-crm
   - alop-notification
-  schema: 05-events/schemas/agreement-signed-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
 - eventType: ap.payable.created.v1
-  version: '1.0'
   producer: alop-ap
   consumers:
   - alop-notification
-  schema: 05-events/schemas/ap-payable-created-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
 - eventType: billing.bill.issued.v1
-  version: '1.0'
   producer: alop-billing
   consumers:
   - alop-finance
   - alop-notification
-  schema: 05-events/schemas/bill-issued-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+- eventType: finance.collection.created.v1
+  producer: alop-finance
+  consumers:
+  - alop-agreement
+  - alop-search
+  - alop-notification
 - eventType: invoice.invoice.delivery-requested.v1
-  version: '1.0'
   producer: alop-invoice
   consumers:
   - alop-notification
-  schema: 05-events/schemas/invoice-delivery-requested-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
 - eventType: invoice.invoice.issued.v1
-  version: '1.0'
   producer: alop-invoice
   consumers:
   - alop-notification
-  schema: 05-events/schemas/invoice-issued-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
-- eventType: notification-delivery-result-v1.schema
-  version: '1.0'
-  producer: platform/integration
-  consumers: []
-  schema: 05-events/schemas/notification-delivery-result-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+  - alop-finance
+  - alop-crm
+- eventType: invoice.invoice.red-flushed.v1
+  producer: alop-invoice
+  consumers:
+  - alop-finance
+  - alop-notification
+- eventType: notification.delivery.sent.v1
+  producer: alop-notification
+  consumers:
+  - alop-invoice
+  - alop-integration
+- eventType: notification.delivery.failed.v1
+  producer: alop-notification
+  consumers:
+  - alop-invoice
+  - alop-integration
+- eventType: notification.delivery.bounced.v1
+  producer: alop-notification
+  consumers:
+  - alop-invoice
+  - alop-integration
 - eventType: owner-settlement.statement.approved.v1
-  version: '1.0'
   producer: alop-owner-settlement
   consumers:
   - alop-ap
   - alop-notification
-  schema: 05-events/schemas/owner-settlement-approved-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
 - eventType: asset.parking.vehicle-bound.v1
-  version: '1.0'
-  producer: alop-asset
+  producer: alop-agreement
   consumers: []
-  schema: 05-events/schemas/parking-vehicle-bound-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
 - eventType: payment.payment.closed.v1
-  version: '1.0'
   producer: alop-payment
-  consumers: []
-  schema: 05-events/schemas/payment-closed-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+  consumers:
+  - alop-crm
+  - alop-reservation
+- eventType: payment.payment.created.v1
+  producer: alop-payment
+  consumers:
+  - alop-notification
 - eventType: payment.refund.succeeded.v1
-  version: '1.0'
   producer: alop-payment
   consumers:
   - alop-finance
   - alop-notification
-  schema: 05-events/schemas/payment-refunded-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
 - eventType: payment.payment.succeeded.v1
-  version: '1.0'
   producer: alop-payment
   consumers:
   - alop-finance
   - alop-crm
   - alop-notification
-  schema: 05-events/schemas/payment-succeeded-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
 - eventType: payment.payment.unknown.v1
-  version: '1.0'
   producer: alop-payment
-  consumers: []
-  schema: 05-events/schemas/payment-unknown-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+  consumers:
+  - alop-notification
+  - alop-operations
+- eventType: billing.property-fee.billed.v1
+  producer: alop-billing
+  consumers:
+  - alop-finance
+  - alop-notification
 - eventType: finance.receivable.due-reminder.v1
-  version: '1.0'
   producer: alop-finance
   consumers: []
-  schema: 05-events/schemas/receivable-due-reminder-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
 - eventType: finance.receivable.overdue.v1
-  version: '1.0'
   producer: alop-finance
   consumers:
   - alop-crm
   - alop-notification
-  schema: 05-events/schemas/receivable-overdue-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+- eventType: finance.reconciliation.exception-created.v1
+  producer: alop-finance
+  consumers:
+  - alop-notification
 - eventType: payment.refund.failed.v1
-  version: '1.0'
   producer: alop-payment
   consumers: []
-  schema: 05-events/schemas/refund-failed-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
-- eventType: asset.reservation.created.v1
-  version: '1.0'
-  producer: alop-asset
+- eventType: agreement.renewal-priority.created.v1
+  producer: alop-agreement
   consumers:
   - alop-crm
   - alop-notification
-  schema: 05-events/schemas/reservation-created-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+- eventType: asset.reservation.created.v1
+  producer: alop-reservation
+  consumers:
+  - alop-crm
+  - alop-notification
+- eventType: asset.reservation.expired.v1
+  producer: alop-reservation
+  consumers:
+  - alop-crm
+  - alop-notification
 - eventType: asset.reservation.expiring.v1
-  version: '1.0'
-  producer: alop-asset
+  producer: alop-reservation
   consumers:
   - alop-notification
-  schema: 05-events/schemas/reservation-expiring-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+- eventType: asset.resource.sold.v1
+  producer: alop-asset
+  consumers:
+  - alop-agreement
+  - alop-crm
+  - alop-search
 - eventType: agreement.resource-transfer.completed.v1
-  version: '1.0'
   producer: alop-agreement
   consumers:
   - alop-billing
   - alop-crm
   - alop-notification
-  schema: 05-events/schemas/resource-transfer-completed-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+- eventType: agreement.resource-transfer.failed.v1
+  producer: alop-agreement
+  consumers:
+  - alop-asset
+  - alop-billing
+  - alop-notification
+- eventType: agreement.resource-transfer.requested.v1
+  producer: alop-agreement
+  consumers:
+  - alop-asset
+  - alop-billing
+  - alop-notification
 - eventType: finance.security-deposit.settled.v1
-  version: '1.0'
   producer: alop-finance
   consumers:
   - alop-agreement
   - alop-notification
-  schema: 05-events/schemas/security-deposit-settled-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
 - eventType: tax.rule.published.v1
-  version: '1.0'
   producer: alop-tax
   consumers:
   - alop-billing
   - alop-invoice
-  schema: 05-events/schemas/tax-rule-published-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
 - eventType: finance.unidentified-collection.claimed.v1
-  version: '1.0'
   producer: alop-finance
   consumers:
   - alop-crm
-  schema: 05-events/schemas/unidentified-collection-claimed-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+- eventType: billing.utility-charge.billed.v1
+  producer: alop-billing
+  consumers:
+  - alop-finance
+  - alop-notification
 - eventType: asset.utility-meter.reading-corrected.v1
-  version: '1.0'
   producer: alop-asset
-  consumers: []
-  schema: 05-events/schemas/utility-meter-reading-corrected-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+  consumers:
+  - alop-billing
+  - alop-finance
 - eventType: asset.utility-meter.reading-verified.v1
-  version: '1.0'
   producer: alop-asset
-  consumers: []
-  schema: 05-events/schemas/utility-meter-reading-verified-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+  consumers:
+  - alop-billing
+  - alop-agreement
 - eventType: billing.utility-usage.calculated.v1
-  version: '1.0'
   producer: alop-billing
   consumers: []
-  schema: 05-events/schemas/utility-usage-calculated-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+- eventType: billing.utility-usage.corrected.v1
+  producer: alop-billing
+  consumers:
+  - alop-finance
+  - alop-notification
 - eventType: operations.work-order.sla-violated.v1
-  version: '1.0'
-  producer: platform/integration
-  consumers: []
-  schema: 05-events/schemas/work-order-sla-violated-v1.schema.json
-  delivery: at-least-once
-  consumerIdempotency: Inbox
+  producer: alop-operations
+  consumers:
+  - alop-notification
+byProducer:
+  alop-agreement:
+  - agreement.agreement.closed.v1
+  - agreement.agreement.effective.v1
+  - agreement.agreement.expiring.v1
+  - agreement.agreement.party-changed.v1
+  - agreement.agreement.signed.v1
+  - asset.parking.vehicle-bound.v1
+  - agreement.renewal-priority.created.v1
+  - agreement.resource-transfer.completed.v1
+  - agreement.resource-transfer.failed.v1
+  - agreement.resource-transfer.requested.v1
+  alop-ap:
+  - ap.payable.created.v1
+  alop-billing:
+  - billing.bill.issued.v1
+  - billing.property-fee.billed.v1
+  - billing.utility-charge.billed.v1
+  - billing.utility-usage.calculated.v1
+  - billing.utility-usage.corrected.v1
+  alop-finance:
+  - finance.collection.created.v1
+  - finance.receivable.due-reminder.v1
+  - finance.receivable.overdue.v1
+  - finance.reconciliation.exception-created.v1
+  - finance.security-deposit.settled.v1
+  - finance.unidentified-collection.claimed.v1
+  alop-invoice:
+  - invoice.invoice.delivery-requested.v1
+  - invoice.invoice.issued.v1
+  - invoice.invoice.red-flushed.v1
+  alop-notification:
+  - notification.delivery.sent.v1
+  - notification.delivery.failed.v1
+  - notification.delivery.bounced.v1
+  alop-owner-settlement:
+  - owner-settlement.statement.approved.v1
+  alop-payment:
+  - payment.payment.closed.v1
+  - payment.payment.created.v1
+  - payment.refund.succeeded.v1
+  - payment.payment.succeeded.v1
+  - payment.payment.unknown.v1
+  - payment.refund.failed.v1
+  alop-reservation:
+  - asset.reservation.created.v1
+  - asset.reservation.expired.v1
+  - asset.reservation.expiring.v1
+  alop-asset:
+  - asset.resource.sold.v1
+  - asset.utility-meter.reading-corrected.v1
+  - asset.utility-meter.reading-verified.v1
+  alop-tax:
+  - tax.rule.published.v1
+  alop-operations:
+  - operations.work-order.sla-violated.v1

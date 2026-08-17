@@ -4,7 +4,12 @@ Result: **PASS**
 
 ## V7.0 SPEC
 - Full V7.0 SPEC preserved: PASS
-- Integrated SPEC file count: 278
+- Integrated SPEC file count: 300
+- Semantic validation (15 checks): PASS — 0 errors, 0 warnings
+- OpenAPI operations: 151
+- DDL tables / columns / indexes: 141 / 1638 / 374
+- Event schemas: 41
+- Codegen TASKs: 33
 
 ## UniApp User App
 - User app files: 61

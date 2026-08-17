@@ -20,4 +20,5 @@
 - `alop-operations`
 - `alop-search`
 - `alop-file`
+- `alop-gateway`
 - `alop-integration`

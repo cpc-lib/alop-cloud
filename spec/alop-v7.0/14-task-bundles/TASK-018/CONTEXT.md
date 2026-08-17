@@ -35,6 +35,8 @@ Dependencies: TASK-004, TASK-010
 - `03-database/flyway/agreement/`
 - `04-openapi/agreement.yaml`
 - `04-openapi/agreement-extensions.yaml`
+- `08-tests/test-plan.md`
+- `08-tests/chaos.md`
 
 ## Agent preflight output
 Before generating code, state:

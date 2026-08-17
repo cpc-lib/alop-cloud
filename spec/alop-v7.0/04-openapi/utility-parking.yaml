@@ -153,6 +153,12 @@ paths:
       summary: Create utility tariff plan/version
       parameters:
       - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUtilityTariffPlanRequest'
       responses:
         '200':
           $ref: '#/components/responses/Success'
@@ -295,9 +301,9 @@ components:
           - AUTO
           - IMPORT
         multiplier:
-          type: number
-          format: double
-          minimum: 0
+          type: string
+          pattern: '^\d+(\.\d{1,8})?$'
+          description: Meter multiplier (rate precision, 8 decimals).
         serialNo:
           type: string
     BindMeterRequest:
@@ -397,15 +403,20 @@ components:
           - PER_RESOURCE_PERIOD
           - PERCENTAGE_OF_RENT
         chargeableAreaSnapshot:
-          type: number
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
         unitPrice:
-          type: number
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
         fixedAmount:
-          type: number
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
         rentAmount:
-          type: number
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
         percentage:
-          type: number
+          type: string
+          pattern: ^\d+(\.\d{1,6})?$
         periodStart:
           type: string
           format: date
@@ -463,3 +474,83 @@ components:
         effectiveTo:
           type: string
           format: date-time
+    CreateUtilityTariffPlanRequest:
+      type: object
+      required:
+      - tariffPlanCode
+      - chargeType
+      - tariffMode
+      - currency
+      - effectiveFrom
+      properties:
+        tariffPlanCode:
+          type: string
+          maxLength: 64
+        chargeType:
+          type: string
+          enum:
+          - WATER
+          - ELECTRICITY
+          - EV_CHARGING_ELECTRICITY
+          - UTILITY_ADJUSTMENT
+        tariffMode:
+          type: string
+          enum:
+          - FLAT
+          - TIERED
+          - TIME_OF_USE
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        flatUnitPrice:
+          type: string
+          pattern: ^\d+(\.\d{1,6})?$
+          description: Unit price per unit (M3/KWH) when tariffMode=FLAT.
+        tiers:
+          type: array
+          description: Ordered tiered rates when tariffMode=TIERED.
+          items:
+            type: object
+            required:
+            - tierCode
+            - upperBound
+            - unitPrice
+            properties:
+              tierCode:
+                type: string
+                maxLength: 32
+              upperBound:
+                type: string
+                pattern: ^\d+(\.\d{1,6})?$
+                description: Exclusive upper bound of the tier in usage units.
+              unitPrice:
+                type: string
+                pattern: ^\d+(\.\d{1,6})?$
+        timeOfUseRates:
+          type: array
+          description: Time-of-use rates when tariffMode=TIME_OF_USE.
+          items:
+            type: object
+            required:
+            - periodCode
+            - unitPrice
+            properties:
+              periodCode:
+                type: string
+                enum:
+                - PEAK
+                - SHOULDER
+                - OFF_PEAK
+              unitPrice:
+                type: string
+                pattern: ^\d+(\.\d{1,6})?$
+        effectiveFrom:
+          type: string
+          format: date-time
+        effectiveTo:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          maxLength: 512

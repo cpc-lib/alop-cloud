@@ -28,6 +28,14 @@ Dependencies: TASK-001, TASK-003
 - `02-domain/platform-integration/DOMAIN-SPEC.md`
 - `02-domain/platform-integration/STATE-MACHINE.md`
 - `03-database/flyway/integration/`
+- `06-workflow/workflow-spec.md`
+- `06-workflow/agreement-approval.bpmn20.xml`
+- `06-workflow/asset-entry-approval.bpmn20.xml`
+- `06-workflow/special-price-approval.bpmn20.xml`
+- `06-workflow/refund-approval.bpmn20.xml`
+- `06-workflow/invoice-red-flush-approval.bpmn20.xml`
+- `06-workflow/reconciliation-exception-approval.bpmn20.xml`
+- `08-tests/test-plan.md`
 
 ## Agent preflight output
 Before generating code, state:

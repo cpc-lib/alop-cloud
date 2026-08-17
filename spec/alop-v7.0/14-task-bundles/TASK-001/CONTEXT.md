@@ -8,6 +8,7 @@ Dependencies: none
 - `00-master/MASTER-SPEC-V7.0.md`
 - `00-master/V7-FREEZE-POLICY.md`
 - `01-architecture/architecture-baseline.md`
+- `01-architecture/adr/ADR-005-outbox-inbox.md`
 - `03-database/DDL-CONTRACT.md`
 - `03-database/DATA-DICTIONARY.md`
 - `05-events/event-registry.yaml`
@@ -28,6 +29,7 @@ Dependencies: none
 - `02-domain/platform-integration/DOMAIN-SPEC.md`
 - `02-domain/platform-integration/STATE-MACHINE.md`
 - `03-database/flyway/integration/`
+- `08-tests/test-plan.md`
 
 ## Agent preflight output
 Before generating code, state:

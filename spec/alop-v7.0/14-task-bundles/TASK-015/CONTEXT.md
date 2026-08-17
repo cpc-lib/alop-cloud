@@ -8,6 +8,9 @@ Dependencies: TASK-002, TASK-014
 - `00-master/MASTER-SPEC-V7.0.md`
 - `00-master/V7-FREEZE-POLICY.md`
 - `01-architecture/architecture-baseline.md`
+- `01-architecture/adr/ADR-007-payment-tenant-merchant.md`
+- `01-architecture/adr/ADR-012-payment-order-attempt-transaction.md`
+- `01-architecture/adr/ADR-013-refund-finance-reservation.md`
 - `03-database/DDL-CONTRACT.md`
 - `03-database/DATA-DICTIONARY.md`
 - `05-events/event-registry.yaml`
@@ -30,6 +33,9 @@ Dependencies: TASK-002, TASK-014
 - `02-domain/payment/PROVIDER-SPEC.md`
 - `03-database/flyway/payment/`
 - `04-openapi/payment.yaml`
+- `08-tests/payment.md`
+- `09-operations/payment-runbook.md`
+- `12-test-data/payment-callback.json`
 
 ## Agent preflight output
 Before generating code, state:

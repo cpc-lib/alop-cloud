@@ -8,6 +8,7 @@ Dependencies: TASK-014, TASK-015
 - `00-master/MASTER-SPEC-V7.0.md`
 - `00-master/V7-FREEZE-POLICY.md`
 - `01-architecture/architecture-baseline.md`
+- `01-architecture/adr/ADR-008-invoice-quota.md`
 - `03-database/DDL-CONTRACT.md`
 - `03-database/DATA-DICTIONARY.md`
 - `05-events/event-registry.yaml`
@@ -30,6 +31,9 @@ Dependencies: TASK-014, TASK-015
 - `02-domain/invoice/EMAIL-DELIVERY-SPEC.md`
 - `03-database/flyway/invoice/`
 - `04-openapi/invoice.yaml`
+- `06-workflow/invoice-red-flush-approval.bpmn20.xml`
+- `08-tests/notification-invoice-email.md`
+- `12-test-data/invoice-redflush.json`
 
 ## Agent preflight output
 Before generating code, state:

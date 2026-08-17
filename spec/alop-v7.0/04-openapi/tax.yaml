@@ -119,8 +119,9 @@ components:
           - TAX_INCLUSIVE
           - NON_TAXABLE
         taxRate:
-          type: number
-          minimum: 0
+          type: string
+          pattern: ^\d+(\.\d{1,8})?$
+          description: Tax rate as decimal string, up to 8 fractional digits.
         effectiveFrom:
           type: string
           format: date-time
@@ -151,7 +152,8 @@ components:
           type: string
           format: date-time
         amount:
-          type: number
+          type: string
+          pattern: ^\d+(\.\d{1,2})?$
         currency:
           type: string
           minLength: 3

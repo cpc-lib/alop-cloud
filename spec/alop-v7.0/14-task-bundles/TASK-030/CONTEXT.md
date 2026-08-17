@@ -8,6 +8,7 @@ Dependencies: TASK-005, TASK-007, TASK-010, TASK-018
 - `00-master/MASTER-SPEC-V7.0.md`
 - `00-master/V7-FREEZE-POLICY.md`
 - `01-architecture/architecture-baseline.md`
+- `01-architecture/adr/ADR-019-resource-transfer.md`
 - `03-database/DDL-CONTRACT.md`
 - `03-database/DATA-DICTIONARY.md`
 - `05-events/event-registry.yaml`
@@ -36,6 +37,7 @@ Dependencies: TASK-005, TASK-007, TASK-010, TASK-018
 - `02-domain/asset/STATE-MACHINE.md`
 - `03-database/flyway/asset/`
 - `04-openapi/asset.yaml`
+- `12-test-data/resource-transfer.json`
 
 ## Agent preflight output
 Before generating code, state:

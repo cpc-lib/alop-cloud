@@ -29,6 +29,7 @@ Dependencies: TASK-006, TASK-008
 - `02-domain/crm/STATE-MACHINE.md`
 - `03-database/flyway/crm/`
 - `04-openapi/crm.yaml`
+- `08-tests/test-plan.md`
 
 ## Agent preflight output
 Before generating code, state:

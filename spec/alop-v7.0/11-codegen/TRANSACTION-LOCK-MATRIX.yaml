@@ -1,98 +1,117 @@
 version: '7.0'
+# successEvent values use the dotted eventType naming from
+# 05-events/event-registry.yaml. Purely internal transitions (no integration
+# event published) use `internal-only`.
 operations:
 - operation: CreateReservation
-  service: alop-asset
+  operationId: postReservations
+  service: alop-reservation
   localTransaction: resource_schedule_guard(conflict scope) -> reservation
   lockOrder: resource ids ASC FOR UPDATE
   idempotency: Idempotency-Key
-  successEvent: ReservationCreated
+  successEvent: asset.reservation.created.v1
 - operation: ConfirmReservation
-  service: alop-asset
+  operationId: postReservationsReservationIdConfirm
+  service: alop-reservation
   localTransaction: reservation
   lockOrder: reservation FOR UPDATE + version
   idempotency: Idempotency-Key
-  successEvent: ReservationConfirmed
+  successEvent: internal-only
 - operation: CommitReservationForAgreement
-  service: alop-asset
+  operationId: postReservationsReservationIdCommit
+  service: alop-reservation
   localTransaction: schedule_guard -> reservation -> occupancy
   lockOrder: resource ids ASC, reservation FOR UPDATE
   idempotency: reservationId+agreementId+requestId
-  successEvent: ReservationConverted
+  successEvent: internal-only
 - operation: SignAgreement
+  operationId: postAgreementsAgreementIdSign
   service: alop-agreement + Saga
   localTransaction: agreement_sign_process; remote Asset commit
   lockOrder: agreement row local; remote asset locks guards
   idempotency: Idempotency-Key + saga request id
-  successEvent: AgreementSigned
+  successEvent: agreement.agreement.signed.v1
 - operation: AllocateCollection
+  operationId: postCollectionsCollectionIdAllocations
   service: alop-finance
   localTransaction: collection -> receivables ASC -> allocations -> ledger
   lockOrder: collection FOR UPDATE, receivable ids ASC FOR UPDATE
   idempotency: Idempotency-Key
-  successEvent: AllocationCreated
+  successEvent: internal-only
 - operation: ReverseAllocation
+  operationId: postAllocationsAllocationIdReverse
   service: alop-finance
   localTransaction: allocation -> collection -> receivable -> reversal -> ledger
   lockOrder: allocation/collection/receivable FOR UPDATE
   idempotency: Idempotency-Key
-  successEvent: AllocationReversed
+  successEvent: internal-only
 - operation: CreatePaymentCallbackFact
+  operationId: paymentCallback
   service: alop-payment
   localTransaction: payment_order -> transaction -> attempt -> outbox
   lockOrder: payment_order FOR UPDATE
   idempotency: provider trade unique + event semantics
-  successEvent: PaymentSucceeded
+  successEvent: payment.payment.succeeded.v1
 - operation: ReserveRefundAmount
+  operationId: postRefundReservationsReserve
   service: alop-finance
   localTransaction: refund reservation -> target financial facts
   lockOrder: payment/collection allocation-related rows per Finance policy
   idempotency: refund request id
-  successEvent: RefundAmountReserved
+  successEvent: internal-only
 - operation: SettleSecurityDeposit
+  operationId: settleSecurityDeposit
   service: alop-finance
   localTransaction: deposit account -> receivables -> tx -> ledger
   lockOrder: deposit account FOR UPDATE; receivable ids ASC
   idempotency: Idempotency-Key
-  successEvent: SecurityDepositSettled
+  successEvent: finance.security-deposit.settled.v1
 - operation: ReserveInvoiceQuota
+  operationId: postInvoiceQuotaReserve
   service: alop-finance
   localTransaction: allocation invoice quota reservation
   lockOrder: eligible allocation rows ASC FOR UPDATE
   idempotency: invoiceApplicationId
-  successEvent: InvoiceQuotaReserved
+  successEvent: internal-only
 - operation: IssueInvoice
+  operationId: postInvoiceApplicationsApplicationIdSubmit
   service: alop-invoice
   localTransaction: application local state + outbox; provider outside tx
   lockOrder: application FOR UPDATE for final transition
   idempotency: provider requestNo + Idempotency-Key
-  successEvent: InvoiceIssued
+  successEvent: invoice.invoice.issued.v1
 - operation: ClaimUnidentifiedCollection
+  operationId: claimUnidentifiedCollection
   service: alop-finance
   localTransaction: unidentified -> collection -> allocation/advance -> ledger
   lockOrder: unidentified FOR UPDATE
   idempotency: Idempotency-Key
-  successEvent: UnidentifiedCollectionClaimed
+  successEvent: finance.unidentified-collection.claimed.v1
 - operation: ResourceTransferExecute
+  operationId: submitResourceTransfer
   service: alop-agreement + Asset Saga
   localTransaction: transfer process + asset target commit + source end
   lockOrder: target conflict-scope guard ASC
   idempotency: transfer request id
-  successEvent: ResourceTransferCompleted
+  successEvent: agreement.resource-transfer.completed.v1
 - operation: CreateAPPaymentRequest
+  operationId: createAPPaymentRequest
   service: alop-ap
   localTransaction: payment_request + items
   lockOrder: payables ids ASC FOR UPDATE
   idempotency: Idempotency-Key
-  successEvent: PaymentRequestCreated
+  successEvent: internal-only
 - operation: ExecutePayout
+  operationId: executeAPPaymentRequest
   service: alop-ap
   localTransaction: payout intent/fact + outbox
   lockOrder: payment request FOR UPDATE
   idempotency: provider requestNo
-  successEvent: PayoutSucceeded
+  successEvent: internal-only
 - operation: OwnerSettlementCalculate
+  operationId: createOwnerSettlement
   service: alop-owner-settlement
   localTransaction: batch + immutable settlement items
   lockOrder: source eligibility reservation/unique keys
   idempotency: batch request id
-  successEvent: OwnerSettlementBatchCreated
+  successEvent: internal-only

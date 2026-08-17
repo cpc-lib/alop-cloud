@@ -8,6 +8,7 @@ Dependencies: TASK-007, TASK-009
 - `00-master/MASTER-SPEC-V7.0.md`
 - `00-master/V7-FREEZE-POLICY.md`
 - `01-architecture/architecture-baseline.md`
+- `01-architecture/adr/ADR-006-agreement-sign-saga.md`
 - `03-database/DDL-CONTRACT.md`
 - `03-database/DATA-DICTIONARY.md`
 - `05-events/event-registry.yaml`
@@ -32,6 +33,10 @@ Dependencies: TASK-007, TASK-009
 - `03-database/flyway/agreement/`
 - `04-openapi/agreement.yaml`
 - `04-openapi/agreement-extensions.yaml`
+- `06-workflow/agreement-approval.bpmn20.xml`
+- `08-tests/e2e-scenarios.md`
+- `12-test-data/e2e-lease-001.json`
+- `examples/agreement-close-checklist.md`
 
 ## Agent preflight output
 Before generating code, state:

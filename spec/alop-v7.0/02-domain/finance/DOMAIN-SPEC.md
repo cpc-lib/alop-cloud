@@ -101,7 +101,7 @@ Financial closed when outstanding is zero or approved write-off, advances have d
 
 
 ## 16. V6.3 补充费用财务要求
-Receivable 必须保留具体 ChargeType：`WATER, ELECTRICITY, PROPERTY_MANAGEMENT_FEE, PARKING_RENT, PARKING_MANAGEMENT_FEE, EV_CHARGING_ELECTRICITY, UTILITY_ADJUSTMENT`。核销、退款、开票和 Ledger 不得把这些费用合并成不可追溯的 `OTHER`。
+Receivable 必须保留具体 ChargeType：`WATER, ELECTRICITY, PROPERTY_MANAGEMENT_FEE, PARKING_RENT, PARKING_MANAGEMENT_FEE, EV_CHARGING_ELECTRICITY, UTILITY_ADJUSTMENT, PARKING_PENALTY`。核销、退款、开票和 Ledger 不得把这些费用合并成不可追溯的 `OTHER`。
 
 已出账水电读数更正产生 Adjustment Bill -> 新 Receivable（正数补收或负数冲减流程），不得直接改原 Receivable 金额。
 

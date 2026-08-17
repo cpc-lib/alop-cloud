@@ -28,6 +28,7 @@ Dependencies: TASK-007, TASK-008, TASK-010, TASK-013, TASK-014, TASK-015, TASK-0
 - `02-domain/platform-integration/DOMAIN-SPEC.md`
 - `02-domain/platform-integration/STATE-MACHINE.md`
 - `03-database/flyway/integration/`
+- `08-tests/test-plan.md`
 
 ## Agent preflight output
 Before generating code, state:

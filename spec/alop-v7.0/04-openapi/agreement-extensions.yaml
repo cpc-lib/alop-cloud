@@ -46,6 +46,44 @@ paths:
             schema:
               $ref: '#/components/schemas/AddAgreementPartyRequest'
       responses: *id001
+  /api/admin/v1/agreements/{agreementId}/party-changes:
+    get:
+      operationId: listAgreementPartyChanges
+      x-alop-tenant-scoped: true
+      parameters:
+      - name: agreementId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses: *id001
+  /api/admin/v1/agreements/{agreementId}/parties/{partyId}:
+    delete:
+      operationId: removeAgreementParty
+      x-alop-tenant-scoped: true
+      x-alop-command: true
+      parameters:
+      - name: agreementId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - name: partyId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReasonVersionRequest'
+      responses: *id001
   /api/admin/v1/resource-transfers:
     get:
       operationId: listResourceTransfers

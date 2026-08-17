@@ -8,6 +8,7 @@ Dependencies: TASK-010, TASK-014, TASK-015
 - `00-master/MASTER-SPEC-V7.0.md`
 - `00-master/V7-FREEZE-POLICY.md`
 - `01-architecture/architecture-baseline.md`
+- `01-architecture/adr/ADR-016-security-deposit-account.md`
 - `03-database/DDL-CONTRACT.md`
 - `03-database/DATA-DICTIONARY.md`
 - `05-events/event-registry.yaml`
@@ -32,6 +33,7 @@ Dependencies: TASK-010, TASK-014, TASK-015
 - `03-database/flyway/finance/`
 - `04-openapi/finance.yaml`
 - `04-openapi/finance-extensions.yaml`
+- `12-test-data/security-deposit.json`
 
 ## Agent preflight output
 Before generating code, state:

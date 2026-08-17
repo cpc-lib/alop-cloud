@@ -8,6 +8,7 @@ Dependencies: TASK-010
 - `00-master/MASTER-SPEC-V7.0.md`
 - `00-master/V7-FREEZE-POLICY.md`
 - `01-architecture/architecture-baseline.md`
+- `01-architecture/adr/ADR-011-utilities-property-fee-parking.md`
 - `03-database/DDL-CONTRACT.md`
 - `03-database/DATA-DICTIONARY.md`
 - `05-events/event-registry.yaml`
@@ -29,6 +30,7 @@ Dependencies: TASK-010
 - `02-domain/billing/STATE-MACHINE.md`
 - `03-database/flyway/billing/`
 - `04-openapi/billing.yaml`
+- `examples/utility-property-parking-examples.md`
 
 ## Agent preflight output
 Before generating code, state:

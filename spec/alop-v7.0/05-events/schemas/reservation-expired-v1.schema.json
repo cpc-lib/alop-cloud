@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "asset.reservation.expired.v1",
+  "title": "ReservationExpired",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateType",
+    "aggregateId",
+    "aggregateVersion",
+    "tenantId",
+    "traceId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eventType": {
+      "const": "asset.reservation.expired.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "aggregateType": {
+      "const": "Reservation"
+    },
+    "aggregateId": {
+      "type": "string"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "correlationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "reservationId",
+        "reservationNo",
+        "customerId",
+        "resourceUnitIds",
+        "expiredAt"
+      ],
+      "properties": {
+        "reservationId": {
+          "type": "integer"
+        },
+        "reservationNo": {
+          "type": "string"
+        },
+        "customerId": {
+          "type": "integer"
+        },
+        "resourceUnitIds": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "expiredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "holdExpireAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

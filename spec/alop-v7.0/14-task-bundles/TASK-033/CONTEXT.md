@@ -8,6 +8,7 @@ Dependencies: TASK-014, TASK-032
 - `00-master/MASTER-SPEC-V7.0.md`
 - `00-master/V7-FREEZE-POLICY.md`
 - `01-architecture/architecture-baseline.md`
+- `01-architecture/adr/ADR-022-owner-settlement.md`
 - `03-database/DDL-CONTRACT.md`
 - `03-database/DATA-DICTIONARY.md`
 - `05-events/event-registry.yaml`
@@ -33,6 +34,7 @@ Dependencies: TASK-014, TASK-032
 - `02-domain/ap/STATE-MACHINE.md`
 - `03-database/flyway/ap/`
 - `04-openapi/ap.yaml`
+- `12-test-data/owner-settlement.json`
 
 ## Agent preflight output
 Before generating code, state:
