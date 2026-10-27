@@ -4,10 +4,13 @@ import com.company.alop.framework.common.messaging.InternalEventContext;
 import com.company.alop.framework.mq.RabbitEventEnvelope;
 import com.company.alop.framework.outbox.JdbcOutboxStore;
 import com.company.alop.framework.outbox.OutboxEvent;
+import com.company.alop.iam.api.event.IamTenantProvisioningCompleted;
+import com.company.alop.iam.api.event.IamTenantProvisioningFailed;
 import com.company.alop.iam.application.service.TenantProvisioningEventParser.Request;
 import com.company.alop.iam.infrastructure.persistence.repository.JdbcTenantProvisioningRepository;
 import com.company.alop.iam.infrastructure.persistence.repository.JdbcTenantProvisioningRepository.Provisioned;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -57,23 +60,19 @@ public final class TenantProvisioningService {
             return;
         }
         db.releaseSavepoint(effects);
-        ObjectNode data = data(request);
-        data.put("membershipId", result.membershipId()).put("adminRoleId", result.roleId());
-        publish(db, envelope, request, "iam.tenant.provisioning.completed.v1", data);
+        var data = new IamTenantProvisioningCompleted(Long.toString(request.tenantId()), request.adminUserId(),
+                result.membershipId(), result.roleId(), request.requestId());
+        publish(db, envelope, request, "iam.tenant.provisioning.completed.v1", JSON.valueToTree(data));
     }
 
     private void failed(Connection db, RabbitEventEnvelope envelope, Request request, String errorCode) throws SQLException {
         repository.recordFailure(db, request, envelope.eventId(), errorCode);
-        ObjectNode data = data(request).put("errorCode", errorCode).put("retryable", false);
-        publish(db, envelope, request, "iam.tenant.provisioning.failed.v1", data);
+        var data = new IamTenantProvisioningFailed(Long.toString(request.tenantId()), request.adminUserId(),
+                request.requestId(), errorCode, false);
+        publish(db, envelope, request, "iam.tenant.provisioning.failed.v1", JSON.valueToTree(data));
     }
 
-    private static ObjectNode data(Request request) {
-        return JSON.createObjectNode().put("tenantId", Long.toString(request.tenantId()))
-                .put("adminUserId", request.adminUserId()).put("tenantCreateRequestId", request.requestId());
-    }
-
-    private void publish(Connection db, RabbitEventEnvelope original, Request request, String type, ObjectNode data) throws SQLException {
+    private void publish(Connection db, RabbitEventEnvelope original, Request request, String type, JsonNode data) throws SQLException {
         String eventId = UUID.nameUUIDFromBytes((SERVICE + ":" + original.eventId() + ":" + type)
                 .getBytes(StandardCharsets.UTF_8)).toString();
         String tenant = Long.toString(request.tenantId());

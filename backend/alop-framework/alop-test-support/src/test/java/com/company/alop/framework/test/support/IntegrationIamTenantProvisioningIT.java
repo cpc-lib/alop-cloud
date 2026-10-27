@@ -18,25 +18,39 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Delivery;
 import com.rabbitmq.client.Envelope;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.jdbc.datasource.DelegatingDataSource;
 
 /** Uses the existing disposable MySQL harness fixture: frozen IAM + integration V1 tables. */
 class IntegrationIamTenantProvisioningIT {
     private static MysqlDataSource source;
     private static AnnotationConfigApplicationContext context;
     private static TenantProvisioningConsumer consumer;
+    private static TenantProvisioningService service;
     private static final ObjectMapper JSON = new ObjectMapper();
-    private final List<String> acks = new ArrayList<>();
+    private final List<String> acks = Collections.synchronizedList(new ArrayList<>());
 
     @BeforeAll static void init() {
         String url = System.getProperty("alop.mysql.jdbcUrl");
@@ -53,7 +67,7 @@ class IntegrationIamTenantProvisioningIT {
         context.refresh();
         var provider = context.getBean(InternalEventContext.Provider.class);
         AtomicLong ids = new AtomicLong(10000);
-        var service = new TenantProvisioningService(new JdbcTenantProvisioningRepository(ids::incrementAndGet),
+        service = new TenantProvisioningService(new JdbcTenantProvisioningRepository(ids::incrementAndGet),
                 new JdbcOutboxStore(), ids::incrementAndGet, provider);
         consumer = new TenantProvisioningConsumer(source, new JdbcInboxDeduplicator(new SnowflakeIdGenerator(30)),
                 provider, service, "alop-iam.tenant-provisioning");
@@ -99,6 +113,36 @@ class IntegrationIamTenantProvisioningIT {
         assertEquals("TENANT_ADMIN_USER_UNAVAILABLE", JSON.readTree(value("SELECT payload FROM mq_outbox")).path("data").path("errorCode").asText());
     }
 
+    @Test void concurrentDuplicateDeliveriesCommitOneAdminAndOneCompletion() throws Exception {
+        concurrentlyDeliverSameEvent();
+        for (String table : List.of("tenant_user_membership", "role", "user_role", "mq_outbox", "mq_inbox")) {
+            assertEquals("1", value("SELECT COUNT(*) FROM " + table), table);
+        }
+        assertEquals("1", value("SELECT COUNT(*) FROM tenant_user_membership WHERE tenant_id=42 AND user_id=7 AND status='ACTIVE'"));
+        assertEquals("1", value("SELECT COUNT(*) FROM role WHERE tenant_id=42 AND role_code='TENANT_ADMIN' AND status='ACTIVE'"));
+        assertEquals("3", value("SELECT COUNT(*) FROM role_permission"));
+        assertEquals("3", value("SELECT COUNT(*) FROM role_permission rp JOIN permission p ON p.id=rp.permission_id "
+                + "WHERE p.permission_code IN ('tenant:user:manage','tenant:role:manage','organization:team:manage')"));
+        assertEquals("1", value("SELECT COUNT(*) FROM mq_outbox WHERE event_type='iam.tenant.provisioning.completed.v1'"));
+        assertEquals("0", value("SELECT COUNT(*) FROM integration_task"));
+        assertEquals("PROCESSED", value("SELECT status FROM mq_inbox"));
+    }
+
+    @Test void concurrentDuplicateRejectionsCommitOneFailureAndOneManualTask() throws Exception {
+        sql("UPDATE platform_user SET status='DISABLED'");
+        concurrentlyDeliverSameEvent();
+        assertEquals("1", value("SELECT COUNT(*) FROM mq_outbox"));
+        assertEquals("1", value("SELECT COUNT(*) FROM mq_outbox WHERE event_type='iam.tenant.provisioning.failed.v1'"));
+        assertEquals("1", value("SELECT COUNT(*) FROM integration_task WHERE manual_required=1 "
+                + "AND last_error_code='TENANT_ADMIN_USER_UNAVAILABLE' AND event_id='event-42'"));
+        assertEquals("1", value("SELECT COUNT(*) FROM integration_task"));
+        assertEquals("1", value("SELECT COUNT(*) FROM mq_inbox"));
+        assertEquals("PROCESSED", value("SELECT status FROM mq_inbox"));
+        for (String table : List.of("tenant_user_membership", "role", "role_permission", "user_role")) {
+            assertEquals("0", value("SELECT COUNT(*) FROM " + table), table);
+        }
+    }
+
     @Test void roleConflictRollsBackNewMembershipAndLeavesPermissionsUntouched() throws Exception {
         sql("INSERT INTO role VALUES(80,42,'TENANT_ADMIN','Tenant Admin','ACTIVE',1)");
         sql("INSERT INTO role_permission VALUES(80,1),(80,2)");
@@ -135,6 +179,57 @@ class IntegrationIamTenantProvisioningIT {
         event.putObject("data").put("tenantId", "42").put("adminUserId", 7).put("tenantCreateRequestId", "request-42")
                 .put("tenantPackageId", 1).put("timezone", "Asia/Shanghai").put("currency", "CNY");
         return event;
+    }
+
+    private void concurrentlyDeliverSameEvent() throws Exception {
+        CyclicBarrier inserts = new CyclicBarrier(2);
+        Set<Long> connectionIds = ConcurrentHashMap.newKeySet();
+        DataSource concurrentSource = new DelegatingDataSource(source) {
+            @Override public Connection getConnection() throws SQLException {
+                Connection db = super.getConnection();
+                try (var query = db.createStatement(); var rows = query.executeQuery("SELECT CONNECTION_ID()")) {
+                    assertTrue(rows.next());
+                    connectionIds.add(rows.getLong(1));
+                }
+                return (Connection) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] {Connection.class},
+                        (proxy, method, args) -> {
+                            try {
+                                Object result = method.invoke(db, args);
+                                if (method.getName().equals("prepareStatement") && ((String) args[0]).contains("INSERT INTO mq_inbox")) {
+                                    return Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] {PreparedStatement.class},
+                                            (statement, operation, parameters) -> {
+                                                if (operation.getName().equals("executeUpdate")) {
+                                                    // Both independent transactions reach the competing INSERT before either executes it.
+                                                    assertFalse(db.getAutoCommit());
+                                                    try { inserts.await(10, TimeUnit.SECONDS); }
+                                                    catch (InterruptedException interrupted) {
+                                                        Thread.currentThread().interrupt();
+                                                        throw new SQLException("Concurrent delivery start interrupted", interrupted);
+                                                    } catch (BrokenBarrierException | TimeoutException failure) {
+                                                        throw new SQLException("Concurrent deliveries did not reach Inbox together", failure);
+                                                    }
+                                                }
+                                                try { return operation.invoke(result, parameters); }
+                                                catch (InvocationTargetException failure) { throw failure.getCause(); }
+                                            });
+                                }
+                                return result;
+                            } catch (InvocationTargetException failure) { throw failure.getCause(); }
+                        });
+            }
+        };
+        var concurrentConsumer = new TenantProvisioningConsumer(concurrentSource,
+                new JdbcInboxDeduplicator(new SnowflakeIdGenerator(31)),
+                context.getBean(InternalEventContext.Provider.class), service, "alop-iam.tenant-provisioning");
+        Delivery delivery = delivery(event());
+        try (var workers = Executors.newFixedThreadPool(2)) {
+            var first = workers.submit(() -> concurrentConsumer.handle(channel(), delivery));
+            var second = workers.submit(() -> concurrentConsumer.handle(channel(), delivery));
+            assertTrue(first.get(20, TimeUnit.SECONDS));
+            assertTrue(second.get(20, TimeUnit.SECONDS));
+        }
+        assertEquals(2, connectionIds.size(), "Deliveries must use distinct MySQL connections");
+        assertEquals(List.of("ack", "ack"), acks);
     }
 
     private Delivery delivery(ObjectNode event) throws Exception {
