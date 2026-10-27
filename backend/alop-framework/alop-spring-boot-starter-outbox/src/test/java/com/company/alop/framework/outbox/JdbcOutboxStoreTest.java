@@ -29,7 +29,7 @@ class JdbcOutboxStoreTest {
         Connection connection = connection(false, parameters);
         OutboxEvent event = event(42);
 
-        store.enqueue(connection, INTERNAL, event);
+        store.enqueue(connection, INTERNAL, "alop-tenant", event);
 
         assertEquals(event.id(), parameters.get(1));
         assertEquals(42L, parameters.get(2));
@@ -39,23 +39,36 @@ class JdbcOutboxStoreTest {
     @Test
     void internalEnqueueRequiresTransactionAndValidEventTenant() {
         assertThrows(IllegalStateException.class,
-                () -> store.enqueue(connection(true, new HashMap<>()), INTERNAL, event(42)));
+                () -> store.enqueue(connection(true, new HashMap<>()), INTERNAL, "alop-tenant", event(42)));
         assertThrows(IllegalArgumentException.class,
                 () -> event(0));
     }
 
     @Test
+    void internalEnqueueRejectsWrongAllowlistedServiceBeforeInsert() {
+        Map<Integer, Object> parameters = new HashMap<>();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> store.enqueue(connection(false, parameters), context("alop-iam"),
+                        "alop-tenant", event(42)));
+
+        assertTrue(parameters.isEmpty());
+        assertThrows(NoSuchMethodException.class, () -> JdbcOutboxStore.class.getMethod(
+                "enqueue", Connection.class, InternalEventContext.class, OutboxEvent.class));
+    }
+
+    @Test
     void internalEnqueueValidatesContextAndPropagatesSqlFailure() {
         assertThrows(NullPointerException.class,
-                () -> store.enqueue(connection(false, new HashMap<>()), INTERNAL, null));
+                () -> store.enqueue(connection(false, new HashMap<>()), INTERNAL, "alop-tenant", null));
         assertThrows(NullPointerException.class,
                 () -> store.enqueue(connection(false, new HashMap<>()),
-                        (InternalEventContext) null, event(42)));
+                        (InternalEventContext) null, "alop-tenant", event(42)));
 
         Map<Integer, Object> parameters = new HashMap<>();
         assertThrows(SQLException.class,
                 () -> store.enqueue(connection(false, parameters,
-                        new SQLException("insert failed")), INTERNAL, event(42)));
+                        new SQLException("insert failed")), INTERNAL, "alop-tenant", event(42)));
         assertTrue(parameters.containsKey(1), "valid event reached JDBC binding before SQL failure");
     }
 

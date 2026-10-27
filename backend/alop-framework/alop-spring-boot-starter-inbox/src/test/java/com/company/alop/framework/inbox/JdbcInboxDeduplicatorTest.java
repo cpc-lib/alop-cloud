@@ -6,6 +6,8 @@ import com.company.alop.framework.common.id.SnowflakeIdGenerator;
 import com.company.alop.framework.common.messaging.InternalEventContext;
 import com.company.alop.framework.common.tenant.TenantContext;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
@@ -15,6 +17,7 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,7 +36,7 @@ class JdbcInboxDeduplicatorTest {
         Connection connection = connection(false, calls);
         Connection[] effectConnection = new Connection[1];
 
-        boolean applied = inbox.consume(connection, INTERNAL, 42, "tenant-provisioning",
+        boolean applied = inbox.consume(connection, INTERNAL, "alop-iam", 42, "tenant-provisioning",
                 UUID.randomUUID().toString(), 0L, db -> {
                     calls.add("effect");
                     effectConnection[0] = db;
@@ -47,11 +50,25 @@ class JdbcInboxDeduplicatorTest {
     @Test
     void internalConsumeRequiresExplicitTransactionAndPositiveTenant() {
         assertThrows(IllegalStateException.class,
-                () -> inbox.consume(connection(true, new ArrayList<>()), INTERNAL, 42,
+                () -> inbox.consume(connection(true, new ArrayList<>()), INTERNAL, "alop-iam", 42,
                         "group", UUID.randomUUID().toString(), null, db -> { }));
         assertThrows(IllegalArgumentException.class,
-                () -> inbox.consume(connection(false, new ArrayList<>()), INTERNAL, 0,
+                () -> inbox.consume(connection(false, new ArrayList<>()), INTERNAL, "alop-iam", 0,
                         "group", UUID.randomUUID().toString(), null, db -> { }));
+    }
+
+    @Test
+    void internalConsumeRejectsWrongAllowlistedServiceBeforeInboxWork() {
+        List<String> calls = new ArrayList<>();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> inbox.consume(connection(false, calls), context("alop-tenant"), "alop-iam",
+                        42, "group", "event", null, db -> calls.add("effect")));
+
+        assertTrue(calls.isEmpty());
+        assertThrows(NoSuchMethodException.class, () -> JdbcInboxDeduplicator.class.getMethod(
+                "consume", Connection.class, InternalEventContext.class, long.class,
+                String.class, String.class, Long.class, JdbcInboxDeduplicator.SqlEffect.class));
     }
 
     @Test
@@ -59,7 +76,7 @@ class JdbcInboxDeduplicatorTest {
         List<String> calls = new ArrayList<>();
         Connection connection = connection(false, calls);
 
-        assertThrows(SQLException.class, () -> inbox.consume(connection, INTERNAL, 42, "group",
+        assertThrows(SQLException.class, () -> inbox.consume(connection, INTERNAL, "alop-iam", 42, "group",
                 UUID.randomUUID().toString(), null, db -> {
                     calls.add("effect");
                     throw new SQLException("business failure");
@@ -75,7 +92,7 @@ class JdbcInboxDeduplicatorTest {
         SQLException rollbackFailure = new SQLException("rollback failure");
 
         SQLException failure = assertThrows(SQLException.class,
-                () -> inbox.consume(connection(false, calls, rollbackFailure), INTERNAL, 42,
+                () -> inbox.consume(connection(false, calls, rollbackFailure), INTERNAL, "alop-iam", 42,
                         "group", UUID.randomUUID().toString(), null, db -> {
                             calls.add("effect");
                             throw primary;
@@ -105,12 +122,52 @@ class JdbcInboxDeduplicatorTest {
         List<String> calls = new ArrayList<>();
         boolean[] effectApplied = {false};
 
-        boolean applied = inbox.consume(duplicateProcessedConnection(calls), INTERNAL, 42,
+        boolean applied = inbox.consume(duplicateProcessedConnection(calls), INTERNAL, "alop-iam", 42,
                 "group", UUID.randomUUID().toString(), null, db -> effectApplied[0] = true);
 
         assertFalse(applied);
         assertFalse(effectApplied[0]);
         assertEquals(List.of("savepoint", "duplicate", "lookup", "release"), calls);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"insert-close", "query-close", "result-close"})
+    void processedDuplicateWithCleanupFailurePreservesPrimaryAndRetries(String operation) {
+        List<String> calls = new ArrayList<>();
+        SQLException duplicate = new SQLException("duplicate", "23000", 1062);
+        SQLException cleanup = new SQLException("cleanup failed");
+
+        SQLException failure = assertThrows(SQLException.class,
+                () -> inbox.consume(duplicateProcessedConnection(calls, duplicate,
+                        Map.of(operation, cleanup)), INTERNAL, "alop-iam", 42, "group", "event", null,
+                        db -> calls.add("effect")));
+
+        assertSame(duplicate, failure);
+        assertEquals(List.of(cleanup), List.of(failure.getSuppressed()));
+        assertFalse(calls.contains("effect"));
+        assertFalse(calls.contains("release"));
+        assertEquals("rollback", calls.getLast());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"query", "result-next"})
+    void duplicateLookupFailureRetainsItsSuppressedCleanupOnOriginalDuplicate(String operation) {
+        List<String> calls = new ArrayList<>();
+        SQLException duplicate = new SQLException("duplicate", "23000", 1062);
+        SQLException lookup = new SQLException("lookup failed");
+        SQLException cleanup = new SQLException("cleanup failed");
+
+        SQLException failure = assertThrows(SQLException.class,
+                () -> inbox.consume(duplicateProcessedConnection(calls, duplicate,
+                        Map.of(operation, lookup, "query-close", cleanup)), INTERNAL, "alop-iam", 42,
+                        "group", "event", null, db -> calls.add("effect")));
+
+        assertSame(duplicate, failure);
+        assertEquals(List.of(lookup), List.of(failure.getSuppressed()));
+        assertEquals(List.of(cleanup), List.of(lookup.getSuppressed()));
+        assertFalse(calls.contains("effect"));
+        assertFalse(calls.contains("release"));
+        assertEquals("rollback", calls.getLast());
     }
 
     @Test
@@ -162,12 +219,24 @@ class JdbcInboxDeduplicatorTest {
     }
 
     private static Connection duplicateProcessedConnection(List<String> calls) {
+        return duplicateProcessedConnection(calls, new SQLException("duplicate", "23000", 1062),
+                Map.of());
+    }
+
+    private static Connection duplicateProcessedConnection(List<String> calls,
+            SQLException duplicate, Map<String, Throwable> failures) {
         Savepoint savepoint = (Savepoint) Proxy.newProxyInstance(
                 JdbcInboxDeduplicatorTest.class.getClassLoader(), new Class<?>[]{Savepoint.class},
                 (proxy, method, args) -> defaultValue(method.getReturnType()));
         ResultSet result = (ResultSet) Proxy.newProxyInstance(
                 JdbcInboxDeduplicatorTest.class.getClassLoader(), new Class<?>[]{ResultSet.class},
                 (proxy, method, args) -> {
+                    if (method.getName().equals("next") && failures.containsKey("result-next")) {
+                        throw failures.get("result-next");
+                    }
+                    if (method.getName().equals("close") && failures.containsKey("result-close")) {
+                        throw failures.get("result-close");
+                    }
                     if (method.getName().equals("next")) return true;
                     if (method.getName().equals("getString")) return "PROCESSED";
                     return defaultValue(method.getReturnType());
@@ -177,7 +246,10 @@ class JdbcInboxDeduplicatorTest {
                 (proxy, method, args) -> {
                     if (method.getName().equals("executeUpdate")) {
                         calls.add("duplicate");
-                        throw new SQLException("duplicate", "23000", 1062);
+                        throw duplicate;
+                    }
+                    if (method.getName().equals("close") && failures.containsKey("insert-close")) {
+                        throw failures.get("insert-close");
                     }
                     return defaultValue(method.getReturnType());
                 });
@@ -186,7 +258,11 @@ class JdbcInboxDeduplicatorTest {
                 (proxy, method, args) -> {
                     if (method.getName().equals("executeQuery")) {
                         calls.add("lookup");
+                        if (failures.containsKey("query")) throw failures.get("query");
                         return result;
+                    }
+                    if (method.getName().equals("close") && failures.containsKey("query-close")) {
+                        throw failures.get("query-close");
                     }
                     return defaultValue(method.getReturnType());
                 });
@@ -198,6 +274,7 @@ class JdbcInboxDeduplicatorTest {
                         case "getAutoCommit" -> { return false; }
                         case "setSavepoint" -> { calls.add("savepoint"); return savepoint; }
                         case "prepareStatement" -> { return statementNumber[0]++ == 0 ? insert : lookup; }
+                        case "rollback" -> { calls.add("rollback"); return null; }
                         case "releaseSavepoint" -> { calls.add("release"); return null; }
                         default -> { return defaultValue(method.getReturnType()); }
                     }

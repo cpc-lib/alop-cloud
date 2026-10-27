@@ -48,7 +48,7 @@ class RabbitInboxDeliveryHandlerTest {
         List<Boolean> requeues = new ArrayList<>();
         Channel channel = channel(calls, requeues);
 
-        boolean handled = handler.handleInternal(channel, delivery(headers("42")),
+        boolean handled = handler.handleInternal(channel, delivery(headers("42")), "alop-tenant",
                 (db, envelope) -> context("alop-tenant"),
                 (db, envelope) -> calls.add("effect"));
 
@@ -66,7 +66,7 @@ class RabbitInboxDeliveryHandlerTest {
                 (db, envelope) -> { }, "unused");
 
         List<Boolean> requeues = new ArrayList<>();
-        boolean handled = handler.handleInternal(channel(calls, requeues), delivery(headers("42")),
+        boolean handled = handler.handleInternal(channel(calls, requeues), delivery(headers("42")), "alop-iam",
                 (db, envelope) -> context("alop-iam"),
                 (db, envelope) -> {
                     calls.add("effect");
@@ -88,11 +88,35 @@ class RabbitInboxDeliveryHandlerTest {
         List<Boolean> requeues = new ArrayList<>();
         Channel channel = channel(calls, requeues);
 
-        assertFalse(handler.handleInternal(channel, delivery(headers("99")),
+        assertFalse(handler.handleInternal(channel, delivery(headers("99")), "alop-iam",
                 (db, envelope) -> context("alop-iam"),
                 (db, envelope) -> calls.add("effect")));
         assertEquals(List.of(false), requeues);
         assertEquals(List.of("nack"), calls);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"alop-tenant", "alop-iam"})
+    void internalPathRejectsWrongAllowlistedServiceBeforeInboxWork(String expectedService)
+            throws Exception {
+        List<String> calls = new ArrayList<>();
+        List<Boolean> requeues = new ArrayList<>();
+        RabbitInboxDeliveryHandler handler = new RabbitInboxDeliveryHandler(
+                dataSource(connection(calls)), new JdbcInboxDeduplicator(new SnowflakeIdGenerator(4)),
+                (db, envelope) -> new TenantContext(42, 420, 4200),
+                (db, envelope) -> { }, "unused");
+
+        assertFalse(handler.handleInternal(channel(calls, requeues), delivery(headers("42")),
+                expectedService, (db, envelope) -> context(expectedService.equals("alop-tenant")
+                        ? "alop-iam" : "alop-tenant"),
+                (db, envelope) -> calls.add("effect")));
+
+        assertEquals(List.of(false), requeues);
+        assertEquals(List.of("rollback", "close", "nack"), calls);
+        assertThrows(NoSuchMethodException.class, () -> RabbitInboxDeliveryHandler.class.getMethod(
+                "handleInternal", Channel.class, Delivery.class,
+                RabbitInboxDeliveryHandler.InternalEventResolver.class,
+                RabbitInboxDeliveryHandler.BusinessEffect.class));
     }
 
     @Test
@@ -105,7 +129,7 @@ class RabbitInboxDeliveryHandlerTest {
                 (db, envelope) -> new TenantContext(42, 420, 4200),
                 (db, envelope) -> { }, "unused");
 
-        assertFalse(handler.handleInternal(channel(calls, requeues), delivery(headers("42")),
+        assertFalse(handler.handleInternal(channel(calls, requeues), delivery(headers("42")), "alop-iam",
                 (db, envelope) -> context("alop-iam"),
                 (db, envelope) -> calls.add("effect")));
 
@@ -124,7 +148,7 @@ class RabbitInboxDeliveryHandlerTest {
                 (db, envelope) -> new TenantContext(42, 420, 4200),
                 (db, envelope) -> { }, "unused");
 
-        assertFalse(handler.handleInternal(channel(calls, requeues), delivery(headers("42")),
+        assertFalse(handler.handleInternal(channel(calls, requeues), delivery(headers("42")), "alop-iam",
                 (db, envelope) -> context("alop-iam"),
                 (db, envelope) -> calls.add("effect")));
 
@@ -187,7 +211,7 @@ class RabbitInboxDeliveryHandlerTest {
                 (db, envelope) -> new TenantContext(42, 420, 4200),
                 (db, envelope) -> { }, "unused");
 
-        assertFalse(handler.handleInternal(channel(calls, requeues), delivery(headers("42")),
+        assertFalse(handler.handleInternal(channel(calls, requeues), delivery(headers("42")), "alop-iam",
                 (db, envelope) -> context("alop-iam"),
                 (db, envelope) -> {
                     throw new BusinessException(CommonErrors.TENANT_ACCESS_DENIED);
@@ -230,7 +254,7 @@ class RabbitInboxDeliveryHandlerTest {
                 (db, envelope) -> new TenantContext(42, 420, 4200),
                 (db, envelope) -> { }, "unused");
 
-        assertFalse(handler.handleInternal(channel(calls, requeues), delivery(headers("42")),
+        assertFalse(handler.handleInternal(channel(calls, requeues), delivery(headers("42")), "alop-tenant",
                 (db, envelope) -> context("alop-tenant"),
                 (db, envelope) -> {
                     calls.add("effect");
@@ -480,7 +504,7 @@ class RabbitInboxDeliveryHandlerTest {
         RabbitInboxDeliveryHandler handler = new RabbitInboxDeliveryHandler(dataSource,
                 new JdbcInboxDeduplicator(new SnowflakeIdGenerator(18)),
                 (db, envelope) -> new TenantContext(42, 420, 4200), effect, "tenant-consumer");
-        return internal ? handler.handleInternal(channel, delivery(headers("42")),
+        return internal ? handler.handleInternal(channel, delivery(headers("42")), "alop-iam",
                 (db, envelope) -> context("alop-iam"), effect)
                 : handler.handle(channel, delivery(headers("42")));
     }

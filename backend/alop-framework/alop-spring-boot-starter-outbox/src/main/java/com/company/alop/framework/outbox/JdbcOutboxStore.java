@@ -31,10 +31,11 @@ public final class JdbcOutboxStore {
      * Enqueue an event for a trusted background operation without fabricating tenant membership.
      * The caller still owns the explicit transaction and must commit it.
      */
-    public void enqueue(Connection connection, InternalEventContext context, OutboxEvent event)
-            throws SQLException {
+    public void enqueue(Connection connection, InternalEventContext context, String expectedService,
+            OutboxEvent event) throws SQLException {
         transaction(connection);
         Objects.requireNonNull(context, "context");
+        context.requireService(expectedService);
         insert(connection, event);
     }
 

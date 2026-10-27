@@ -41,11 +41,12 @@ public final class JdbcInboxDeduplicator {
      * Consume an event for a trusted background operation without fabricating tenant membership.
      * Inbox state and the supplied effect still share the caller-owned transaction.
      */
-    public boolean consume(Connection connection, InternalEventContext context, long eventTenantId,
-            String consumerGroup, String eventId, Long aggregateVersion, SqlEffect effect)
-            throws SQLException {
+    public boolean consume(Connection connection, InternalEventContext context, String expectedService,
+            long eventTenantId, String consumerGroup, String eventId, Long aggregateVersion,
+            SqlEffect effect) throws SQLException {
         Objects.requireNonNull(connection, "connection");
         Objects.requireNonNull(context, "context");
+        context.requireService(expectedService);
         Objects.requireNonNull(effect, "effect");
         requireTenantId(eventTenantId);
         return consume(connection, eventTenantId, consumerGroup, eventId, aggregateVersion, effect);
@@ -78,21 +79,26 @@ public final class JdbcInboxDeduplicator {
             } catch (SQLException failure) {
                 // MySQL duplicate-key 1062 may be from either the PK or the Inbox unique key.
                 // Never treat an unrelated Snowflake ID collision as successful deduplication.
-                if (failure.getErrorCode() != 1062) throw failure;
+                if (failure.getErrorCode() != 1062 || failure.getSuppressed().length > 0) throw failure;
                 String sql = """
                         SELECT status FROM mq_inbox
                         WHERE tenant_id=? AND consumer_group=? AND event_id=?
                         """;
+                boolean processed;
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setLong(1, eventTenantId);
                     statement.setString(2, consumerGroup);
                     statement.setString(3, eventId);
                     try (ResultSet result = statement.executeQuery()) {
-                        if (result.next() && "PROCESSED".equals(result.getString(1))) {
-                            connection.releaseSavepoint(savepoint);
-                            return false;
-                        }
+                        processed = result.next() && "PROCESSED".equals(result.getString(1));
                     }
+                } catch (SQLException | RuntimeException lookupFailure) {
+                    failure.addSuppressed(lookupFailure);
+                    throw failure;
+                }
+                if (processed) {
+                    connection.releaseSavepoint(savepoint);
+                    return false;
                 }
                 throw failure;
             }

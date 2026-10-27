@@ -70,14 +70,15 @@ public final class RabbitInboxDeliveryHandler {
      * Handle a trusted background event without creating a fake tenant membership.
      * The broker is acknowledged only after the Inbox and business effect commit.
      */
-    public boolean handleInternal(Channel channel, Delivery delivery,
+    public boolean handleInternal(Channel channel, Delivery delivery, String expectedService,
             InternalEventResolver resolver, BusinessEffect effect) throws IOException {
         Objects.requireNonNull(resolver, "resolver");
         Objects.requireNonNull(effect, "effect");
         return handleDelivery(channel, delivery, (db, envelope) -> {
             InternalEventContext trusted = Objects.requireNonNull(resolver.resolve(db, envelope),
                     "InternalEventResolver returned null");
-            inbox.consume(db, trusted, envelope.tenantId(), group, envelope.eventId(),
+            trusted.requireService(expectedService);
+            inbox.consume(db, trusted, expectedService, envelope.tenantId(), group, envelope.eventId(),
                     envelope.aggregateVersion(), connection -> effect.apply(connection, envelope));
         });
     }
