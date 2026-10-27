@@ -114,7 +114,11 @@ public final class JdbcInboxDeduplicator {
             return true;
         } catch (SQLException | RuntimeException exception) {
             // Protect from accidental partial commits if the application catches an exception.
-            connection.rollback(savepoint);
+            try {
+                connection.rollback(savepoint);
+            } catch (SQLException | RuntimeException rollbackFailure) {
+                exception.addSuppressed(rollbackFailure);
+            }
             throw exception;
         }
     }

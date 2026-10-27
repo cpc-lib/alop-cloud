@@ -10,10 +10,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -58,6 +60,37 @@ class JdbcOutboxStoreTest {
     }
 
     @Test
+    void markDeadKeepsPrimaryWhenSavepointRollbackFails() {
+        JdbcOutboxStore.Claim claim = new JdbcOutboxStore.Claim(
+                1, 42, "event", "type", "1", "{}", 0, "claim");
+        SQLException primary = new SQLException("transition failure");
+        SQLException rollbackFailure = new SQLException("rollback failure");
+
+        SQLException failure = assertThrows(SQLException.class,
+                () -> store.markDead(connection(false, new HashMap<>(), primary, rollbackFailure),
+                        claim, 2, "ERROR", "failure"));
+
+        assertSame(primary, failure);
+        assertEquals(1, failure.getSuppressed().length);
+        assertSame(rollbackFailure, failure.getSuppressed()[0]);
+    }
+
+    @Test
+    void markDeadKeepsRuntimePrimaryWhenRollbackAlsoThrowsRuntimeException() {
+        JdbcOutboxStore.Claim claim = new JdbcOutboxStore.Claim(
+                1, 42, "event", "type", "1", "{}", 0, "claim");
+        IllegalStateException primary = new IllegalStateException("transition failed");
+        IllegalStateException rollbackFailure = new IllegalStateException("rollback failed");
+
+        IllegalStateException failure = assertThrows(IllegalStateException.class,
+                () -> store.markDead(connection(false, new HashMap<>(), primary, rollbackFailure),
+                        claim, 2, "ERROR", "failure"));
+
+        assertSame(primary, failure);
+        assertEquals(List.of(rollbackFailure), List.of(failure.getSuppressed()));
+    }
+
+    @Test
     void ordinaryEnqueueStillRejectsMismatchedTenant() {
         TenantContext user = new TenantContext(7, 70, 700);
 
@@ -76,6 +109,11 @@ class JdbcOutboxStoreTest {
 
     private static Connection connection(boolean autoCommit, Map<Integer, Object> parameters,
             SQLException executeFailure) {
+        return connection(autoCommit, parameters, executeFailure, null);
+    }
+
+    private static Connection connection(boolean autoCommit, Map<Integer, Object> parameters,
+            Throwable executeFailure, Throwable rollbackFailure) {
         PreparedStatement statement = (PreparedStatement) Proxy.newProxyInstance(
                 JdbcOutboxStoreTest.class.getClassLoader(), new Class<?>[]{PreparedStatement.class},
                 (proxy, method, args) -> {
@@ -94,6 +132,9 @@ class JdbcOutboxStoreTest {
                 (proxy, method, args) -> {
                     if (method.getName().equals("getAutoCommit")) return autoCommit;
                     if (method.getName().equals("prepareStatement")) return statement;
+                    if (method.getName().equals("rollback") && rollbackFailure != null) {
+                        throw rollbackFailure;
+                    }
                     return defaultValue(method.getReturnType());
                 });
     }

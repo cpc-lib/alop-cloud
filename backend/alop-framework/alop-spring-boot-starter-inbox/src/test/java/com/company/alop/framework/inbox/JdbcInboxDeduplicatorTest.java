@@ -1,6 +1,7 @@
 package com.company.alop.framework.inbox;
 
 import com.company.alop.framework.common.error.BusinessException;
+import com.company.alop.framework.common.error.CommonErrors;
 import com.company.alop.framework.common.id.SnowflakeIdGenerator;
 import com.company.alop.framework.common.messaging.InternalEventContext;
 import com.company.alop.framework.common.tenant.TenantContext;
@@ -68,6 +69,38 @@ class JdbcInboxDeduplicatorTest {
     }
 
     @Test
+    void failedEffectKeepsPrimaryWhenSavepointRollbackFails() {
+        List<String> calls = new ArrayList<>();
+        SQLException primary = new SQLException("effect failure");
+        SQLException rollbackFailure = new SQLException("rollback failure");
+
+        SQLException failure = assertThrows(SQLException.class,
+                () -> inbox.consume(connection(false, calls, rollbackFailure), INTERNAL, 42,
+                        "group", UUID.randomUUID().toString(), null, db -> {
+                            calls.add("effect");
+                            throw primary;
+                        }));
+
+        assertSame(primary, failure);
+        assertEquals(1, failure.getSuppressed().length);
+        assertSame(rollbackFailure, failure.getSuppressed()[0]);
+    }
+
+    @Test
+    void failedBusinessEffectKeepsPrimaryWhenRollbackThrowsRuntimeException() {
+        BusinessException primary = new BusinessException(CommonErrors.TENANT_ACCESS_DENIED);
+        IllegalStateException rollbackFailure = new IllegalStateException("rollback failed");
+
+        BusinessException failure = assertThrows(BusinessException.class,
+                () -> inbox.consume(connection(false, new ArrayList<>(), rollbackFailure),
+                        new TenantContext(42, 420, 4200), 42, "group", "event", null,
+                        db -> { throw primary; }));
+
+        assertSame(primary, failure);
+        assertEquals(List.of(rollbackFailure), List.of(failure.getSuppressed()));
+    }
+
+    @Test
     void processedDuplicateDoesNotRunInternalEffectAgain() throws Exception {
         List<String> calls = new ArrayList<>();
         boolean[] effectApplied = {false};
@@ -93,6 +126,11 @@ class JdbcInboxDeduplicatorTest {
     }
 
     private static Connection connection(boolean autoCommit, List<String> calls) {
+        return connection(autoCommit, calls, null);
+    }
+
+    private static Connection connection(boolean autoCommit, List<String> calls,
+            Throwable rollbackFailure) {
         Savepoint savepoint = (Savepoint) Proxy.newProxyInstance(
                 JdbcInboxDeduplicatorTest.class.getClassLoader(), new Class<?>[]{Savepoint.class},
                 (proxy, method, args) -> defaultValue(method.getReturnType()));
@@ -112,7 +150,11 @@ class JdbcInboxDeduplicatorTest {
                         case "getAutoCommit" -> { return autoCommit; }
                         case "setSavepoint" -> { calls.add("savepoint"); return savepoint; }
                         case "prepareStatement" -> { return statement; }
-                        case "rollback" -> { calls.add("rollback"); return null; }
+                        case "rollback" -> {
+                            calls.add("rollback");
+                            if (rollbackFailure != null) throw rollbackFailure;
+                            return null;
+                        }
                         case "releaseSavepoint" -> { calls.add("release"); return null; }
                         default -> { return defaultValue(method.getReturnType()); }
                     }

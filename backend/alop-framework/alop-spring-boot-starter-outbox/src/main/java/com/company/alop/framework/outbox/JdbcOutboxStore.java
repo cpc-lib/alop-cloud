@@ -173,7 +173,11 @@ public final class JdbcOutboxStore {
         connection.releaseSavepoint(savepoint);
         } catch (SQLException | RuntimeException failure) {
             // Do not leave a DEAD event without a durable IntegrationTask.
-            connection.rollback(savepoint);
+            try {
+                connection.rollback(savepoint);
+            } catch (SQLException | RuntimeException rollbackFailure) {
+                failure.addSuppressed(rollbackFailure);
+            }
             throw failure;
         }
     }

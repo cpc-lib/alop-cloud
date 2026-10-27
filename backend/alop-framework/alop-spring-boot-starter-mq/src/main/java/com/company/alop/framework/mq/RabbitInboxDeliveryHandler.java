@@ -1,5 +1,6 @@
 package com.company.alop.framework.mq;
 
+import com.company.alop.framework.common.error.BusinessException;
 import com.company.alop.framework.common.messaging.InternalEventContext;
 import com.company.alop.framework.common.tenant.TenantContext;
 import com.company.alop.framework.inbox.JdbcInboxDeduplicator;
@@ -50,7 +51,7 @@ public final class RabbitInboxDeliveryHandler {
 
     /**
      * On poison processing: nack without requeue, requiring a configured
-     * DLX/quarantine policy. Failed business processing is nacked for retry.
+     * DLX/quarantine policy. Retryable business and uncertain infrastructure failures requeue.
      * Never ACK before local commit.
      * On ACK IO failure after commit the broker may redeliver; Inbox deduplicates it.
      */
@@ -62,7 +63,7 @@ public final class RabbitInboxDeliveryHandler {
             verified.requireTenant(envelope.tenantId());
             inbox.consume(db, verified, envelope.tenantId(), group, envelope.eventId(),
                     envelope.aggregateVersion(), connection -> effect.apply(connection, envelope));
-        }, true);
+        });
     }
 
     /**
@@ -78,11 +79,11 @@ public final class RabbitInboxDeliveryHandler {
                     "InternalEventResolver returned null");
             inbox.consume(db, trusted, envelope.tenantId(), group, envelope.eventId(),
                     envelope.aggregateVersion(), connection -> effect.apply(connection, envelope));
-        }, true);
+        });
     }
 
     private boolean handleDelivery(Channel channel, Delivery delivery,
-            TransactionEffect transactionEffect, boolean requeueOnFailure) throws IOException {
+            TransactionEffect transactionEffect) throws IOException {
         Objects.requireNonNull(channel, "channel");
         Objects.requireNonNull(delivery, "delivery");
         Objects.requireNonNull(transactionEffect, "transactionEffect");
@@ -91,25 +92,63 @@ public final class RabbitInboxDeliveryHandler {
         try {
             envelope = validate(delivery);
         } catch (IOException | RuntimeException invalid) {
-            channel.basicNack(tag, false, false);
-            return false;
+            return nack(channel, tag, false);
         }
-        try (Connection db = dataSource.getConnection()) {
+
+        Connection db = null;
+        Throwable failure = null;
+        boolean forceRequeue = true;
+        try {
+            db = dataSource.getConnection();
             db.setAutoCommit(false);
-            try {
-                transactionEffect.apply(db, envelope);
-                db.commit();
-            } catch (SQLException | RuntimeException error) {
-                db.rollback();
-                channel.basicNack(tag, false, requeueOnFailure);
-                return false;
+            forceRequeue = false;
+            transactionEffect.apply(db, envelope);
+            forceRequeue = true;
+            db.commit();
+        } catch (SQLException | RuntimeException primary) {
+            failure = primary;
+            if (db != null) {
+                try {
+                    db.rollback();
+                } catch (SQLException | RuntimeException rollbackFailure) {
+                    primary.addSuppressed(rollbackFailure);
+                    forceRequeue = true;
+                }
             }
-        } catch (SQLException failure) {
-            channel.basicNack(tag, false, requeueOnFailure);
-            return false;
+        } finally {
+            if (db != null) {
+                try {
+                    db.close();
+                } catch (SQLException | RuntimeException closeFailure) {
+                    if (failure == null) {
+                        failure = closeFailure;
+                    } else {
+                        failure.addSuppressed(closeFailure);
+                    }
+                    forceRequeue = true;
+                }
+            }
+        }
+        if (failure != null) {
+            return nack(channel, tag, forceRequeue || shouldRequeue(failure));
         }
         channel.basicAck(tag, false);
         return true;
+    }
+
+    private static boolean nack(Channel channel, long tag, boolean requeue) throws IOException {
+        channel.basicNack(tag, false, requeue);
+        return false;
+    }
+
+    private static boolean shouldRequeue(Throwable failure) {
+        // JDBC savepoint rollback and resource cleanup failures preserve the primary exception.
+        if (failure.getSuppressed().length > 0) return true;
+        if (failure instanceof SQLException) return true;
+        if (failure instanceof BusinessException business) {
+            return business.error().retryable();
+        }
+        return false;
     }
 
     private static RabbitEventEnvelope validate(Delivery delivery) throws IOException {

@@ -20,6 +20,14 @@ public final class InternalEventContext {
         return serviceName;
     }
 
+    public void requireService(String expectedService) {
+        Objects.requireNonNull(expectedService, "expectedService");
+        if (!ALLOWED_SERVICE_IDENTITIES.contains(expectedService)
+                || !serviceName.equals(expectedService)) {
+            throw new IllegalArgumentException("Unexpected service identity");
+        }
+    }
+
     /** Package-private factory reserved for trusted framework configuration. */
     static Provider provider(String serviceName) {
         return new Provider(serviceName);

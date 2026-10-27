@@ -11,6 +11,8 @@ public final class InternalEventContextProperties {
     }
 
     public void setServiceName(String serviceName) {
+        // Validate every configured value, including "false" which disables the bean condition.
+        InternalEventContext.provider(serviceName);
         this.serviceName = serviceName;
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InternalEventContextAutoConfigurationTest {
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
@@ -27,9 +28,26 @@ class InternalEventContextAutoConfigurationTest {
                 });
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"untrusted-service", "false", "FALSE"})
+    void rejectsUnknownServiceIdentityDuringStartup(String serviceName) {
+        runner.withPropertyValues("alop.messaging.internal.service-name=" + serviceName)
+                .run(context -> assertNotNull(context.getStartupFailure()));
+    }
+
     @Test
-    void rejectsUnknownServiceIdentityDuringStartup() {
-        runner.withPropertyValues("alop.messaging.internal.service-name=untrusted-service")
+    void missingServicePropertyDoesNotCreateProvider() {
+        runner.run(context -> {
+            assertNull(context.getStartupFailure());
+            assertTrue(context.getBeansOfType(InternalEventContext.Provider.class).isEmpty());
+            new com.company.alop.framework.common.tenant.TenantContext(42, 420, 4200)
+                    .requireTenant(42);
+        });
+    }
+
+    @Test
+    void rejectsBlankServiceIdentityWhenConfigured() {
+        runner.withPropertyValues("alop.messaging.internal.service-name=   ")
                 .run(context -> assertNotNull(context.getStartupFailure()));
     }
 }
