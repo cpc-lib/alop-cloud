@@ -152,19 +152,113 @@ class RabbitInboxDeliveryHandlerTest {
         assertEquals(List.of("savepoint", "insert", "rollback-savepoint", "rollback", "nack"), calls);
     }
 
+    @Test
+    void ordinaryCommitFailureNacksForRetryWithoutAck() throws Exception {
+        List<String> calls = new ArrayList<>();
+        List<Boolean> requeues = new ArrayList<>();
+        RabbitInboxDeliveryHandler handler = new RabbitInboxDeliveryHandler(
+                dataSource(connection(calls, true, false)), new JdbcInboxDeduplicator(new SnowflakeIdGenerator(9)),
+                (db, envelope) -> new TenantContext(42, 420, 4200),
+                (db, envelope) -> calls.add("effect"), "tenant-consumer");
+
+        assertFalse(handler.handle(channel(calls, requeues), delivery(headers("42"))));
+
+        assertEquals(List.of(true), requeues);
+        assertEquals(List.of("savepoint", "insert", "effect", "update", "release",
+                "commit", "rollback", "nack"), calls);
+        assertFalse(calls.contains("ack"));
+    }
+
+    @Test
+    void ordinaryRollbackFailureNacksForRetryWithoutAck() throws Exception {
+        List<String> calls = new ArrayList<>();
+        List<Boolean> requeues = new ArrayList<>();
+        RabbitInboxDeliveryHandler handler = new RabbitInboxDeliveryHandler(
+                dataSource(connection(calls, true, true)), new JdbcInboxDeduplicator(new SnowflakeIdGenerator(10)),
+                (db, envelope) -> new TenantContext(42, 420, 4200),
+                (db, envelope) -> calls.add("effect"), "tenant-consumer");
+
+        assertFalse(handler.handle(channel(calls, requeues), delivery(headers("42"))));
+
+        assertEquals(List.of(true), requeues);
+        assertEquals(List.of("savepoint", "insert", "effect", "update", "release",
+                "commit", "rollback", "nack"), calls);
+        assertFalse(calls.contains("ack"));
+    }
+
+    @Test
+    void invalidEnvelopeNacksWithoutRetry() throws Exception {
+        List<String> calls = new ArrayList<>();
+        List<Boolean> requeues = new ArrayList<>();
+        RabbitInboxDeliveryHandler handler = new RabbitInboxDeliveryHandler(
+                dataSource(connection(calls)), new JdbcInboxDeduplicator(new SnowflakeIdGenerator(11)),
+                (db, envelope) -> new TenantContext(42, 420, 4200),
+                (db, envelope) -> calls.add("effect"), "tenant-consumer");
+        Delivery invalid = delivery("{}".getBytes(StandardCharsets.UTF_8), EVENT_ID, EVENT_TYPE,
+                headers("42"));
+
+        assertFalse(handler.handle(channel(calls, requeues), invalid));
+
+        assertEquals(List.of(false), requeues);
+        assertEquals(List.of("nack"), calls);
+        assertFalse(calls.contains("ack"));
+    }
+
+    @Test
+    void messageIdMismatchNacksWithoutRetry() throws Exception {
+        List<String> calls = new ArrayList<>();
+        List<Boolean> requeues = new ArrayList<>();
+        RabbitInboxDeliveryHandler handler = new RabbitInboxDeliveryHandler(
+                dataSource(connection(calls)), new JdbcInboxDeduplicator(new SnowflakeIdGenerator(12)),
+                (db, envelope) -> new TenantContext(42, 420, 4200),
+                (db, envelope) -> calls.add("effect"), "tenant-consumer");
+
+        assertFalse(handler.handle(channel(calls, requeues),
+                delivery(validBody(), "different-event", EVENT_TYPE, headers("42"))));
+
+        assertEquals(List.of(false), requeues);
+        assertEquals(List.of("nack"), calls);
+        assertFalse(calls.contains("ack"));
+    }
+
+    @Test
+    void amqpTypeMismatchNacksWithoutRetry() throws Exception {
+        List<String> calls = new ArrayList<>();
+        List<Boolean> requeues = new ArrayList<>();
+        RabbitInboxDeliveryHandler handler = new RabbitInboxDeliveryHandler(
+                dataSource(connection(calls)), new JdbcInboxDeduplicator(new SnowflakeIdGenerator(13)),
+                (db, envelope) -> new TenantContext(42, 420, 4200),
+                (db, envelope) -> calls.add("effect"), "tenant-consumer");
+
+        assertFalse(handler.handle(channel(calls, requeues),
+                delivery(validBody(), EVENT_ID, "different.event.type", headers("42"))));
+
+        assertEquals(List.of(false), requeues);
+        assertEquals(List.of("nack"), calls);
+        assertFalse(calls.contains("ack"));
+    }
+
     private static Delivery delivery(Map<String, Object> headers) {
-        byte[] body = ("{" +
+        return delivery(validBody(), EVENT_ID, EVENT_TYPE, headers);
+    }
+
+    private static Delivery delivery(byte[] body, String messageId, String type,
+            Map<String, Object> headers) {
+        AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
+                .messageId(messageId)
+                .type(type)
+                .headers(headers)
+                .build();
+        return new Delivery(new Envelope(7, false, "events", EVENT_TYPE), properties, body);
+    }
+
+    private static byte[] validBody() {
+        return ("{" +
                 "\"eventId\":\"" + EVENT_ID + "\",\"eventType\":\"" + EVENT_TYPE + "\"," +
                 "\"eventVersion\":\"1.0\",\"tenantId\":\"42\",\"aggregateType\":\"Tenant\"," +
                 "\"aggregateId\":\"42\",\"aggregateVersion\":0,\"traceId\":\"trace\"," +
                 "\"occurredAt\":\"2026-10-27T00:00:00Z\",\"data\":{}}")
                 .getBytes(StandardCharsets.UTF_8);
-        AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
-                .messageId(EVENT_ID)
-                .type(EVENT_TYPE)
-                .headers(headers)
-                .build();
-        return new Delivery(new Envelope(7, false, "events", EVENT_TYPE), properties, body);
     }
 
     private static Map<String, Object> headers(String tenantId) {
