@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tenant.provisioning.requested.v1",
+  "title": "TenantProvisioningRequested",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateType",
+    "aggregateId",
+    "aggregateVersion",
+    "tenantId",
+    "traceId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eventType": {
+      "const": "tenant.provisioning.requested.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "aggregateType": {
+      "const": "Tenant"
+    },
+    "aggregateId": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tenantId": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$"
+    },
+    "traceId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "correlationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "tenantId",
+        "tenantCreateRequestId",
+        "adminUserId",
+        "tenantPackageId",
+        "timezone",
+        "currency"
+      ],
+      "properties": {
+        "tenantId": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$"
+        },
+        "tenantCreateRequestId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "adminUserId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "tenantPackageId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

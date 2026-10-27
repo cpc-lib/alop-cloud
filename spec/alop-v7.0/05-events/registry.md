@@ -1,6 +1,6 @@
 # Event Registry (V7.0)
 
-Canonical source: `05-events/event-registry.yaml`. This document is the derived human-readable view; every row below matches the registry entry one-to-one (43 events). The generated producer/consumer view for code generation is `11-codegen/EVENT-PRODUCER-CONSUMER-MATRIX.yaml` (produced by `scripts/generate_event_matrix.py`).
+Canonical source: `05-events/event-registry.yaml`. This document is the derived human-readable view; every row below matches the registry entry one-to-one (47 events). The generated producer/consumer view for code generation is `11-codegen/EVENT-PRODUCER-CONSUMER-MATRIX.yaml` (produced by `scripts/generate_event_matrix.py`).
 
 | Event Type | Producer | Consumers | Schema |
 |---|---|---|---|
@@ -32,6 +32,8 @@ Canonical source: `05-events/event-registry.yaml`. This document is the derived 
 | finance.reconciliation.exception-created.v1 | alop-finance | alop-notification | reconciliation-exception-created-v1.schema.json |
 | finance.security-deposit.settled.v1 | alop-finance | alop-agreement, alop-notification | security-deposit-settled-v1.schema.json |
 | finance.unidentified-collection.claimed.v1 | alop-finance | alop-crm | unidentified-collection-claimed-v1.schema.json |
+| iam.tenant.provisioning.completed.v1 | alop-iam | alop-tenant | iam-tenant-provisioning-completed-v1.schema.json |
+| iam.tenant.provisioning.failed.v1 | alop-iam | alop-tenant | iam-tenant-provisioning-failed-v1.schema.json |
 | invoice.invoice.delivery-requested.v1 | alop-invoice | alop-notification | invoice-delivery-requested-v1.schema.json |
 | invoice.invoice.issued.v1 | alop-invoice | alop-notification, alop-finance, alop-crm | invoice-issued-v1.schema.json |
 | invoice.invoice.red-flushed.v1 | alop-invoice | alop-finance, alop-notification | invoice-red-flushed-v1.schema.json |
@@ -47,6 +49,8 @@ Canonical source: `05-events/event-registry.yaml`. This document is the derived 
 | payment.refund.succeeded.v1 | alop-payment | alop-finance, alop-notification | payment-refunded-v1.schema.json |
 | payment.refund.failed.v1 | alop-payment | (none registered) | refund-failed-v1.schema.json |
 | tax.rule.published.v1 | alop-tax | alop-billing, alop-invoice | tax-rule-published-v1.schema.json |
+| tenant.provisioning.requested.v1 | alop-tenant | alop-iam | tenant-provisioning-requested-v1.schema.json |
+| tenant.tenant.created.v1 | alop-tenant | (none registered) | tenant-created-v1.schema.json |
 
 Notes:
 - `alop-reservation` is the standalone reservation service (ADR-023); it owns `asset.reservation.*` events.
@@ -160,7 +164,7 @@ DOMAIN-SPECs describe produced events in PascalCase. The canonical cross-service
 | reservation | ReservationExpired | asset.reservation.expired.v1 |
 | reservation | ReservationConverted | - |
 | tax | TaxRulePublished | tax.rule.published.v1 |
-| tenant | TenantCreated | tenant.tenant.created.v1 (V6 legacy name; NOT registered in V7.0) |
+| tenant | TenantCreated | tenant.tenant.created.v1 |
 | tenant | TenantSuspended | - |
 | tenant | TenantResumed | - |
 | tenant | TenantTerminated | - |

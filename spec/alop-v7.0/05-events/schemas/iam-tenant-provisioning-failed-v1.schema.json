@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "iam.tenant.provisioning.failed.v1",
+  "title": "IamTenantProvisioningFailed",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "aggregateType",
+    "aggregateId",
+    "aggregateVersion",
+    "tenantId",
+    "traceId",
+    "occurredAt",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "eventType": {
+      "const": "iam.tenant.provisioning.failed.v1"
+    },
+    "eventVersion": {
+      "const": "1.0"
+    },
+    "aggregateType": {
+      "const": "Tenant"
+    },
+    "aggregateId": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tenantId": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*$"
+    },
+    "traceId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "correlationId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "tenantId",
+        "adminUserId",
+        "tenantCreateRequestId",
+        "errorCode",
+        "retryable"
+      ],
+      "properties": {
+        "tenantId": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$"
+        },
+        "adminUserId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "tenantCreateRequestId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "errorCode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

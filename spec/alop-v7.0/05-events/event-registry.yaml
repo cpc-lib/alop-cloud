@@ -381,3 +381,34 @@ events:
   schema: 05-events/schemas/work-order-sla-violated-v1.schema.json
   delivery: at-least-once
   consumerIdempotency: Inbox
+- eventType: tenant.provisioning.requested.v1
+  version: '1.0'
+  producer: alop-tenant
+  consumers:
+  - alop-iam
+  schema: 05-events/schemas/tenant-provisioning-requested-v1.schema.json
+  delivery: at-least-once
+  consumerIdempotency: Inbox
+- eventType: iam.tenant.provisioning.completed.v1
+  version: '1.0'
+  producer: alop-iam
+  consumers:
+  - alop-tenant
+  schema: 05-events/schemas/iam-tenant-provisioning-completed-v1.schema.json
+  delivery: at-least-once
+  consumerIdempotency: Inbox
+- eventType: iam.tenant.provisioning.failed.v1
+  version: '1.0'
+  producer: alop-iam
+  consumers:
+  - alop-tenant
+  schema: 05-events/schemas/iam-tenant-provisioning-failed-v1.schema.json
+  delivery: at-least-once
+  consumerIdempotency: Inbox
+- eventType: tenant.tenant.created.v1
+  version: '1.0'
+  producer: alop-tenant
+  consumers: []
+  schema: 05-events/schemas/tenant-created-v1.schema.json
+  delivery: at-least-once
+  consumerIdempotency: Inbox
