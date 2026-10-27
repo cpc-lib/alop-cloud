@@ -1,5 +1,7 @@
 # Tenant Create Prerequisites Design
 
+> Scope amendment: the current Tenant schema and service ownership do not provide a durable admin-user binding. This slice therefore hardens the prerequisites and REST fail-closed boundary, but does not expose a successful v2 create path until IAM provisioning is available.
+
 ## Goal
 
 为 Tenant v2 创建租户接口补齐安全、数据和运行时装配前提，使创建流程能够接收 `packageCode`、解析有效套餐、校验平台创建权限，并使用生产级 ID 生成器；在没有可信操作者身份时必须 fail-closed。
@@ -32,9 +34,9 @@
 
 `CreateTenantService` 继续持有调用方数据库连接并负责提交、回滚和幂等 replay。套餐解析、幂等记录、租户插入和响应完成记录共享同一事务。已有的重复幂等键、请求身份冲突和数据库唯一键冲突语义保持不变。
 
-### 5. REST v2 is a thin adapter
+### 5. REST v2 is a fail-closed boundary for this slice
 
-新增 `POST /api/platform/v2/tenants` Controller，仅负责 header/body 映射、actor 解析、调用应用服务和错误映射。Controller 不生成 ID、不解析套餐、不直接访问数据库，也不从 `adminUserId` 推导 actor。actor 或权限缺失时接口返回既定的 403 错误。
+为 `POST /api/platform/v2/tenants` 准备请求/错误映射和 Controller 边界测试，但本 slice 不开放一个会返回成功的生产创建链路。Controller 仅负责 header/body 映射、actor 解析和错误映射；不生成 ID、不解析套餐、不直接访问数据库，也不从 `adminUserId` 推导 actor。由于 `adminUserId` 当前没有可靠持久化或 IAM provisioning 落点，生产链路在前置能力未完成时 fail-closed，不宣称 v2 创建成功。
 
 ## Data flow
 
@@ -43,13 +45,14 @@ HTTP request
   -> v2 DTO validation
   -> PlatformActorResolver
   -> TenantCreateAuthorizer
-  -> CreateTenantService
+  -> fail-closed readiness boundary
+  -> CreateTenantService (only after admin provisioning is available)
        -> idempotency insert/replay
        -> active package lookup by packageCode
        -> Tenant.creating(..., resolvedPackageId)
        -> tenant insert
        -> idempotency completion
-  -> HTTP response
+  -> HTTP error response in this slice
 ```
 
 所有写入步骤均由 `CreateTenantService` 的单一 JDBC 事务包围。异常时回滚，包括套餐解析成功但租户写入失败的情况。
@@ -60,6 +63,7 @@ HTTP request
 | --- | --- |
 | 缺少可信平台 actor | `TENANT_ACCESS_DENIED` |
 | actor 没有 `platform:tenant:create` | `TENANT_ACCESS_DENIED` |
+| adminUserId 没有 IAM provisioning 落点 | 当前 REST 边界拒绝，不返回创建成功 |
 | packageCode 不存在或套餐非 ACTIVE | `TENANT_PACKAGE_NOT_FOUND` |
 | 同一幂等键对应不同请求 | `IDEMPOTENCY_KEY_CONFLICT` |
 | tenantCreateRequestId 或 tenantCode 重复 | `TENANT_CREATE_REQUEST_CONFLICT` |
@@ -74,10 +78,10 @@ HTTP request
 1. `TenantPackageRepository` 的 ACTIVE、非 ACTIVE 和不存在行为。
 2. `CreateTenantService` 使用 packageCode、拒绝未授权 actor、保留现有幂等和回滚行为。
 3. Spring 配置对 worker id 的必填读取、ID supplier 装配和 repository/service Bean 装配。
-4. Controller 对 V2 请求映射、成功响应和 fail-closed 错误映射。
+4. Controller 对 V2 请求映射和 fail-closed 错误映射；不添加虚假的成功响应。
 5. 运行 Tenant 模块单测、Maven 编译、项目结构校验，并回归真实 MySQL/RabbitMQ 集成测试。
 
 ## Non-goals
 
-本次不实现真实 IAM 权限查询、不引入 Provisioning Saga/Outbox、不增加 TenantPackage 管理接口、不修改 V1 合约或已冻结的 V1 数据库定义，也不改变现有租户生命周期状态机。
+本次不实现真实 IAM 权限查询、不引入 Provisioning Saga/Outbox、不增加 TenantPackage 管理接口、不新增管理员绑定表、不修改 V1 合约或已冻结的 V1 数据库定义，也不改变现有租户生命周期状态机。只有在 IAM 成员创建/Provisioning 具备可靠落点后，才开放携带 `adminUserId` 的 v2 成功创建链路。
 
