@@ -144,7 +144,7 @@ Expected: all Tenant lifecycle and CreateTenant service tests pass.
 - Create: `docs/development/implementation/TASK-002-TENANT-CREATE-IDEMPOTENCY.md`
 - Modify: `docs/project-management/PROGRESS.md` with exact test results and remaining gaps.
 
-- [ ] **Step 1: Run the real MySQL/RabbitMQ suite.**
+- [x] **Step 1: Run the real MySQL/RabbitMQ suite.**
 
 ```powershell
 python scripts/verify_rabbit_mysql_docker.py
