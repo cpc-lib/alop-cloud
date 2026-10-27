@@ -4,7 +4,7 @@
 version: '7.0'
 source: 05-events/event-registry.yaml
 generatedBy: scripts/generate_event_matrix.py
-eventCount: 43
+eventCount: 47
 events:
 - eventType: agreement.agreement.closed.v1
   producer: alop-agreement
@@ -215,6 +215,21 @@ events:
   producer: alop-operations
   consumers:
   - alop-notification
+- eventType: tenant.provisioning.requested.v1
+  producer: alop-tenant
+  consumers:
+  - alop-iam
+- eventType: iam.tenant.provisioning.completed.v1
+  producer: alop-iam
+  consumers:
+  - alop-tenant
+- eventType: iam.tenant.provisioning.failed.v1
+  producer: alop-iam
+  consumers:
+  - alop-tenant
+- eventType: tenant.tenant.created.v1
+  producer: alop-tenant
+  consumers: []
 byProducer:
   alop-agreement:
   - agreement.agreement.closed.v1
@@ -271,3 +286,9 @@ byProducer:
   - tax.rule.published.v1
   alop-operations:
   - operations.work-order.sla-violated.v1
+  alop-tenant:
+  - tenant.provisioning.requested.v1
+  - tenant.tenant.created.v1
+  alop-iam:
+  - iam.tenant.provisioning.completed.v1
+  - iam.tenant.provisioning.failed.v1
