@@ -201,6 +201,13 @@ class TenantProvisioningEventContractTest(unittest.TestCase):
         event["eventType"] = "tenant.provisioning.requested.v1"
         self.assert_invalid(event_type, event)
 
+    def test_wrong_event_version_is_rejected(self):
+        for event_type in CONTRACTS:
+            with self.subTest(event_type=event_type):
+                event = valid_envelope(event_type)
+                event["eventVersion"] = "9.9"
+                self.assert_invalid(event_type, event)
+
     def test_missing_required_data_is_rejected(self):
         event_type = "iam.tenant.provisioning.failed.v1"
         event = valid_envelope(event_type)
