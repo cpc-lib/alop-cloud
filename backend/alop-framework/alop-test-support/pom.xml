@@ -10,4 +10,12 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>alop-test-support</artifactId>
+  <dependencies>
+    <dependency>
+      <groupId>com.company.alop</groupId>
+      <artifactId>alop-iam-server</artifactId>
+      <version>${revision}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>
