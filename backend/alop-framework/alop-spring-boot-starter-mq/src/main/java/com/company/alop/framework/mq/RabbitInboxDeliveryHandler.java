@@ -49,8 +49,9 @@ public final class RabbitInboxDeliveryHandler {
     }
 
     /**
-     * On poison or failed business processing: nack without requeue, requiring a
-     * configured DLX/quarantine policy. Never ACK before local commit.
+     * On poison processing: nack without requeue, requiring a configured
+     * DLX/quarantine policy. Failed business processing is nacked for retry.
+     * Never ACK before local commit.
      * On ACK IO failure after commit the broker may redeliver; Inbox deduplicates it.
      */
     public boolean handle(Channel channel, Delivery delivery) throws IOException {
@@ -61,7 +62,7 @@ public final class RabbitInboxDeliveryHandler {
             verified.requireTenant(envelope.tenantId());
             inbox.consume(db, verified, envelope.tenantId(), group, envelope.eventId(),
                     envelope.aggregateVersion(), connection -> effect.apply(connection, envelope));
-        }, false);
+        }, true);
     }
 
     /**

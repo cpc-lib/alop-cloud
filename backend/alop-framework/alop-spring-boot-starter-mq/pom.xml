@@ -10,4 +10,10 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>alop-spring-boot-starter-mq</artifactId>
+  <dependencies>
+    <dependency><groupId>org.springframework</groupId><artifactId>spring-context</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-autoconfigure</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-test</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.assertj</groupId><artifactId>assertj-core</artifactId><scope>test</scope></dependency>
+  </dependencies>
 </project>

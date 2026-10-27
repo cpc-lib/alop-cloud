@@ -11,6 +11,8 @@ class InternalEventContextTest {
         assertThrows(NullPointerException.class, () -> InternalEventContext.provider(null));
         assertThrows(IllegalArgumentException.class, () -> InternalEventContext.provider(""));
         assertThrows(IllegalArgumentException.class, () -> InternalEventContext.provider("  "));
+        assertThrows(IllegalArgumentException.class,
+                () -> InternalEventContext.provider("untrusted-service"));
     }
 
     @Test

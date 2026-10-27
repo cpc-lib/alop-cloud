@@ -137,6 +137,21 @@ class RabbitInboxDeliveryHandlerTest {
         assertEquals(List.of("savepoint", "insert", "effect", "update", "release", "commit", "ack"), calls);
     }
 
+    @Test
+    void ordinaryEffectFailureNacksForRetry() throws Exception {
+        List<String> calls = new ArrayList<>();
+        List<Boolean> requeues = new ArrayList<>();
+        RabbitInboxDeliveryHandler handler = new RabbitInboxDeliveryHandler(
+                dataSource(connection(calls)), new JdbcInboxDeduplicator(new SnowflakeIdGenerator(8)),
+                (db, envelope) -> new TenantContext(42, 420, 4200),
+                (db, envelope) -> { throw new SQLException("business failure"); }, "tenant-consumer");
+
+        assertFalse(handler.handle(channel(calls, requeues), delivery(headers("42"))));
+
+        assertEquals(List.of(true), requeues);
+        assertEquals(List.of("savepoint", "insert", "rollback-savepoint", "rollback", "nack"), calls);
+    }
+
     private static Delivery delivery(Map<String, Object> headers) {
         byte[] body = ("{" +
                 "\"eventId\":\"" + EVENT_ID + "\",\"eventType\":\"" + EVENT_TYPE + "\"," +
