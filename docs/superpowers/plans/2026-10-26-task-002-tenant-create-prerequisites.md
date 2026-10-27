@@ -33,11 +33,11 @@
 - Create: `backend/alop-tenant/alop-tenant-server/src/main/java/com/company/alop/tenant/infrastructure/persistence/repository/JdbcTenantPackageRepository.java`
 - Test: `backend/alop-framework/alop-test-support/src/test/java/com/company/alop/framework/test/support/IntegrationTenantCreateIT.java`
 
-- [ ] **Step 1: Write the failing integration assertions.**
+- [x] **Step 1: Write the failing integration assertions.**
 
 Update `IntegrationTenantCreateIT` to construct a package repository, insert `packageCode=standard` with `status=ACTIVE` in `clean()`, and call the create command with `standard`. Add one test that inserts only an INACTIVE package and expects `TENANT_PACKAGE_NOT_FOUND` from the service. The test must use the real MySQL connection and assert no tenant row is created.
 
-- [ ] **Step 2: Run the focused test and verify the expected RED failure.**
+- [x] **Step 2: Run the focused test and verify the expected RED failure.**
 
 Run:
 
@@ -47,7 +47,7 @@ python scripts/verify_rabbit_mysql_docker.py
 
 Expected: compilation/test failure because `TenantPackageRepository` and the package-code command path do not exist yet. Do not treat an unavailable Docker engine as a feature failure; if it is unavailable, run the Tenant unit test in Task 2 after the source-level test is written and record the integration retry for Task 6.
 
-- [ ] **Step 3: Add the stable error definitions.**
+- [x] **Step 3: Add the stable error definitions.**
 
 Add these exact definitions:
 
@@ -60,7 +60,7 @@ public static final ErrorDefinition TENANT_CREATE_NOT_READY =
 
 Register the same codes under the `tenant` section of `error-codes.yaml`; keep V1 OpenAPI and V1 DDL unchanged.
 
-- [ ] **Step 4: Implement the minimal repository port and JDBC adapter.**
+- [x] **Step 4: Implement the minimal repository port and JDBC adapter.**
 
 Use this port shape:
 
@@ -72,7 +72,7 @@ public interface TenantPackageRepository {
 
 The JDBC adapter must execute a parameterized query selecting `id` from `tenant_package` where `package_code=? AND status='ACTIVE'`, require an explicit transaction, and return `OptionalLong.empty()` for no row. It must not create or mutate package rows.
 
-- [ ] **Step 5: Re-run the focused integration test and verify GREEN.**
+- [x] **Step 5: Re-run the focused integration test and verify GREEN.**
 
 Run the same Docker runner. Expected: the new package lookup test and all previously covered Tenant create tests pass; no V1 schema file changes are present.
 
@@ -84,7 +84,7 @@ Run the same Docker runner. Expected: the new package lookup test and all previo
 - Modify: `backend/alop-tenant/alop-tenant-server/src/test/java/com/company/alop/tenant/application/service/CreateTenantServiceTest.java`
 - Modify: all current `new CreateTenantCommand(...)` call sites found by `rg`
 
-- [ ] **Step 1: Write the failing unit tests.**
+- [x] **Step 1: Write the failing unit tests.**
 
 Add tests for these behaviors using a stub `TenantPackageRepository` and the existing test data source seam. The package-code hash test is:
 
@@ -111,7 +111,7 @@ void inactiveOrMissingPackageIsRejectedBeforeTenantInsert() throws Exception {
 
 `serviceWithMissingPackage()` is a test helper that constructs the real service with the existing test DataSource, a stub package repository returning `OptionalLong.empty()`, the existing JDBC tenant/idempotency repositories, and monotonic test ID suppliers. `validCommand(String packageCode)` returns a command with valid fixed values and the supplied package code. Keep the test focused on behavior, not private implementation details.
 
-- [ ] **Step 2: Run the unit test and verify RED.**
+- [x] **Step 2: Run the unit test and verify RED.**
 
 Run:
 
@@ -121,11 +121,11 @@ mvn -f backend/pom.xml -pl alop-tenant/alop-tenant-server -am -Dtest=CreateTenan
 
 Expected: compilation or assertion failure because the command still accepts `packageId` and the service does not resolve package codes.
 
-- [ ] **Step 3: Implement the minimal command/service change.**
+- [x] **Step 3: Implement the minimal command/service change.**
 
 Change the command component from `Long packageId` to `String packageCode`; require non-blank code with a maximum of 64 characters and include it in `canonicalForm()`. Inject `TenantPackageRepository` into `CreateTenantService`. After the idempotency pending record is inserted and before `Tenant.creating`, call `findActiveIdByCode(connection, command.packageCode())`; throw `TENANT_PACKAGE_NOT_FOUND` when empty; pass the resolved ID to the aggregate. Keep replay before package lookup, keep the same commit/rollback blocks, and preserve existing duplicate and idempotency errors.
 
-- [ ] **Step 4: Run the unit tests and verify GREEN.**
+- [x] **Step 4: Run the unit tests and verify GREEN.**
 
 Run the focused command and service test, then:
 
@@ -146,11 +146,11 @@ Expected: the focused tests and the complete Tenant/common reactor pass.
 - Test: `backend/alop-tenant/alop-tenant-server/src/test/java/com/company/alop/tenant/application/security/PlatformActorTest.java`
 - Test: `backend/alop-tenant/alop-tenant-server/src/test/java/com/company/alop/tenant/infrastructure/security/FailClosedTenantCreateSecurityTest.java`
 
-- [ ] **Step 1: Write failing tests.**
+- [x] **Step 1: Write failing tests.**
 
 Test that `PlatformActor` rejects zero or negative IDs, that the fail-closed resolver throws `BusinessException` with `TENANT_ACCESS_DENIED`, and that the fail-closed authorizer rejects even a valid actor. Do not use `adminUserId` in any of these tests.
 
-- [ ] **Step 2: Run the tests and verify RED.**
+- [x] **Step 2: Run the tests and verify RED.**
 
 Run:
 
@@ -160,11 +160,11 @@ mvn -f backend/pom.xml -pl alop-tenant/alop-tenant-server -am -Dtest="*Actor*Tes
 
 Expected: missing-type or assertion failures.
 
-- [ ] **Step 3: Implement the minimal ports and adapters.**
+- [x] **Step 3: Implement the minimal ports and adapters.**
 
 Use `PlatformActor(long userId)` with `userId > 0`, `PlatformActorResolver.resolve()` returning a trusted actor, and `TenantCreateAuthorizer.requireCreate(PlatformActor actor)` returning normally only when authorized. The default adapters always throw `new BusinessException(CommonErrors.TENANT_ACCESS_DENIED)`.
 
-- [ ] **Step 4: Run the focused and complete Tenant tests.**
+- [x] **Step 4: Run the focused and complete Tenant tests.**
 
 Expected: all new security tests and all existing Tenant/common tests pass.
 
@@ -176,11 +176,11 @@ Expected: all new security tests and all existing Tenant/common tests pass.
 - Create: `backend/alop-tenant/alop-tenant-server/src/main/java/com/company/alop/tenant/infrastructure/config/TenantCreateConfiguration.java`
 - Test: `backend/alop-tenant/alop-tenant-server/src/test/java/com/company/alop/tenant/infrastructure/config/TenantCreateConfigurationTest.java`
 
-- [ ] **Step 1: Write the failing configuration tests.**
+- [x] **Step 1: Write the failing configuration tests.**
 
 Add a Spring context test with `alop.tenant.worker-id=7` and a test `DataSource` that asserts the context contains `SnowflakeIdGenerator`, both `LongSupplier` beans, `JdbcTenantRepository`, `JdbcTenantPackageRepository`, `JdbcTenantCreateIdempotencyRepository`, `CreateTenantService`, and the fail-closed actor/authorizer beans. Add a second context test with no worker-id property and assert startup fails with an unresolved required property.
 
-- [ ] **Step 2: Run the configuration tests and verify RED.**
+- [x] **Step 2: Run the configuration tests and verify RED.**
 
 Run:
 
@@ -190,7 +190,7 @@ mvn -f backend/pom.xml -pl alop-tenant/alop-tenant-server -am -Dtest=TenantCreat
 
 Expected: missing configuration class/beans or missing JDBC dependency.
 
-- [ ] **Step 3: Implement the minimal Spring configuration.**
+- [x] **Step 3: Implement the minimal Spring configuration.**
 
 Add `spring-boot-starter-jdbc`, `mysql-connector-j` runtime, and `spring-boot-test` test dependency only where required. Define `TenantCreateConfiguration` with a required constructor property `@Value("${alop.tenant.worker-id}") long workerId`; expose one `SnowflakeIdGenerator`, two suppliers backed by `nextId()`, the three JDBC repositories, the create service, and fail-closed security adapters. Add:
 
@@ -202,7 +202,7 @@ alop:
 
 Do not add a fallback worker ID or hard-coded datasource credentials.
 
-- [ ] **Step 4: Run configuration and complete module tests.**
+- [x] **Step 4: Run configuration and complete module tests.**
 
 Expected: configured context passes, missing worker ID fails, and no existing unit test regresses.
 
@@ -214,11 +214,11 @@ Expected: configured context passes, missing worker ID fails, and no existing un
 - Create: `backend/alop-tenant/alop-tenant-server/src/main/java/com/company/alop/tenant/interfaces/rest/TenantCreateError.java`
 - Test: `backend/alop-tenant/alop-tenant-server/src/test/java/com/company/alop/tenant/interfaces/rest/TenantCreateV2ControllerTest.java`
 
-- [ ] **Step 1: Write failing controller tests.**
+- [x] **Step 1: Write failing controller tests.**
 
 Test that a request containing all V2 fields and a valid `Idempotency-Key` reaches the actor boundary and returns `403 TENANT_ACCESS_DENIED` with the default fail-closed resolver. Test that a valid actor cannot produce `200` while the admin binding readiness is unavailable; it must return `503 TENANT_CREATE_NOT_READY`. Test malformed/missing idempotency key and missing required body values return `400` without invoking any repository or service.
 
-- [ ] **Step 2: Run the controller tests and verify RED.**
+- [x] **Step 2: Run the controller tests and verify RED.**
 
 Run:
 
@@ -228,11 +228,11 @@ mvn -f backend/pom.xml -pl alop-tenant/alop-tenant-server -am -Dtest=TenantCreat
 
 Expected: missing DTO/controller/error mapping or incorrect status codes.
 
-- [ ] **Step 3: Implement the thin fail-closed adapter.**
+- [x] **Step 3: Implement the thin fail-closed adapter.**
 
 Create a record matching the V2 fields: `tenantCode`, `tenantName`, `tenantType`, `packageCode`, `adminUserId`, `tenantCreateRequestId`, `timezone`, and `currency`. Validate required text, positive `adminUserId`, request ID length, and header length before calling application boundaries. Map `BusinessException` to its stable HTTP status/code. The controller must not call `CreateTenantService` in this slice; after successful actor/permission checks it returns `TENANT_CREATE_NOT_READY` so no `adminUserId` is silently discarded. Keep the endpoint path and method exactly `/api/platform/v2/tenants` and `POST`.
 
-- [ ] **Step 4: Run controller and full Tenant tests.**
+- [x] **Step 4: Run controller and full Tenant tests.**
 
 Expected: 400/403/503 mappings pass and no 200 response is emitted by this slice.
 
@@ -243,7 +243,7 @@ Expected: 400/403/503 mappings pass and no 200 response is emitted by this slice
 - Modify: `scripts/verify_rabbit_mysql_docker.py` only if the new package seed needs a runner hook
 - Modify: `docs/development/implementation/TASK-002-TENANT-CREATE-IDEMPOTENCY.md` and `docs/project-management/PROGRESS.md`
 
-- [ ] **Step 1: Verify source and contract boundaries.**
+- [x] **Step 1: Verify source and contract boundaries.**
 
 Run:
 
@@ -255,7 +255,7 @@ git diff --check
 
 Parse the changed YAML files and assert the frozen V1 OpenAPI and V1 Tenant DDL bytes are unchanged.
 
-- [ ] **Step 2: Run the complete local Maven verification.**
+- [x] **Step 2: Run the complete local Maven verification.**
 
 Run:
 
@@ -266,7 +266,7 @@ mvn -f backend/pom.xml -pl alop-framework/alop-test-support -am -DskipTests test
 
 Expected: BUILD SUCCESS, all Tenant/common tests green.
 
-- [ ] **Step 3: Run the real Docker-backed regression.**
+- [x] **Step 3: Run the real Docker-backed regression.**
 
 Run:
 
@@ -276,7 +276,7 @@ python scripts/verify_rabbit_mysql_docker.py
 
 Expected: prior 39/39 scenarios plus the package-code and not-ready coverage pass, with zero failures/errors/skips; verify no `alop-mq-*` containers remain afterward.
 
-- [ ] **Step 4: Record evidence and inspect the final diff.**
+- [x] **Step 4: Record evidence and inspect the final diff.**
 
 Update the implementation evidence with exact test counts and the explicit limitation that v2 success remains blocked by IAM admin provisioning. Review `git diff --stat` and `git status --short`; do not stage or commit unrelated pre-existing worktree changes.
 
