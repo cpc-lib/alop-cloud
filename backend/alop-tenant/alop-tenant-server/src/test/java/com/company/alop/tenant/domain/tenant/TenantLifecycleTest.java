@@ -78,6 +78,25 @@ class TenantLifecycleTest {
         assertEquals(0L, rehydrated.version());
     }
 
+    @Test
+    void directCreatingFactoryUsesDefaultsAndCannotBypassTenantValidation() {
+        Tenant defaults = Tenant.creating(1L, "request-1", "acme", "Acme", "ENTERPRISE", 10L,
+                null, null);
+
+        assertEquals("Asia/Shanghai", defaults.timezone());
+        assertEquals("CNY", defaults.currency());
+        assertThrows(IllegalArgumentException.class, () -> Tenant.creating(1L, "request-1", "acme",
+                "Acme", "ENTERPRISE", 10L, " ", "CNY"));
+        assertThrows(IllegalArgumentException.class, () -> Tenant.creating(1L, "request-1", "acme",
+                "Acme", "ENTERPRISE", 10L, "Asia/Shanghai", "US"));
+        assertThrows(IllegalArgumentException.class, () -> Tenant.creating(1L, "request-1",
+                "C".repeat(65), "Acme", "ENTERPRISE", 10L));
+        assertThrows(IllegalArgumentException.class, () -> Tenant.creating(1L, "request-1", "acme",
+                "N".repeat(129), "ENTERPRISE", 10L));
+        assertThrows(IllegalArgumentException.class, () -> Tenant.creating(1L, "request-1", "acme",
+                "Acme", "T".repeat(33), 10L));
+    }
+
     private static void assertError(com.company.alop.framework.common.error.ErrorDefinition expected,
             org.junit.jupiter.api.function.Executable operation) {
         BusinessException exception = assertThrows(BusinessException.class, operation);

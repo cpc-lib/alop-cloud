@@ -17,28 +17,24 @@ public final class Tenant {
 
     private Tenant(long id, String tenantCreateRequestId, String tenantCode, String tenantName,
             String tenantType, Long packageId, String timezone, String currency) {
-        if (id <= 0 || !validRequestId(tenantCreateRequestId) || tenantCode == null || tenantCode.isBlank()
-                || tenantName == null || tenantName.isBlank()
-                || tenantType == null || tenantType.isBlank()
-                || timezone == null || timezone.isBlank() || currency == null
-                || !currency.matches("[A-Z]{3}")) {
+        if (id <= 0) {
             throw new IllegalArgumentException("Tenant identity and create request fields are required");
         }
         this.id = id;
-        this.tenantCreateRequestId = tenantCreateRequestId;
-        this.tenantCode = tenantCode;
-        this.tenantName = tenantName;
-        this.tenantType = tenantType;
+        this.tenantCreateRequestId = TenantDefaults.requireRequestId(tenantCreateRequestId);
+        this.tenantCode = TenantDefaults.requireTenantCode(tenantCode);
+        this.tenantName = TenantDefaults.requireTenantName(tenantName);
+        this.tenantType = TenantDefaults.requireTenantType(tenantType);
         this.packageId = packageId;
-        this.timezone = timezone;
-        this.currency = currency;
+        this.timezone = TenantDefaults.normalizeTimezone(timezone);
+        this.currency = TenantDefaults.normalizeCurrency(currency);
         this.status = TenantStatus.CREATING;
     }
 
     public static Tenant creating(long id, String tenantCreateRequestId, String tenantCode,
             String tenantName, String tenantType, Long packageId) {
         return creating(id, tenantCreateRequestId, tenantCode, tenantName, tenantType, packageId,
-                "Asia/Shanghai", "CNY");
+                null, null);
     }
 
     public static Tenant creating(long id, String tenantCreateRequestId, String tenantCode,
@@ -51,7 +47,7 @@ public final class Tenant {
             String tenantName, String tenantType, Long packageId, TenantStatus status,
             long version) {
         return rehydrate(id, tenantCreateRequestId, tenantCode, tenantName, tenantType, packageId,
-                "Asia/Shanghai", "CNY", status, version);
+                null, null, status, version);
     }
 
     public static Tenant rehydrate(long id, String tenantCreateRequestId, String tenantCode,
@@ -141,8 +137,4 @@ public final class Tenant {
         return new BusinessException(CommonErrors.TENANT_INVALID_STATE);
     }
 
-    private static boolean validRequestId(String requestId) {
-        return requestId != null && requestId.length() >= 8 && requestId.length() <= 128
-                && !requestId.isBlank();
-    }
 }

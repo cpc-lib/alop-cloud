@@ -42,7 +42,7 @@ public final class CreateTenantService {
 
     public CreateTenantResult create(CreateTenantCommand command) throws SQLException {
         Objects.requireNonNull(command, "command");
-        String requestHash = sha256(command.canonicalForm());
+        String requestHash = requestHash(command);
         try (Connection connection = dataSource.getConnection()) {
             connection.setAutoCommit(false);
             try {
@@ -57,7 +57,13 @@ public final class CreateTenantService {
                     if (!"COMPLETED".equals(existing.status())) {
                         throw new SQLException("CreateTenant idempotency record is not completed");
                     }
+                    if (!RESPONSE_CODE.equals(existing.responseCode())) {
+                        throw new SQLException("CreateTenant idempotency response code is invalid");
+                    }
                     CreateTenantResult replay = CreateTenantResult.fromResponseBody(existing.responseBody());
+                    if (!command.tenantCreateRequestId().equals(replay.tenantCreateRequestId())) {
+                        throw new SQLException("CreateTenant replay request ID does not match command");
+                    }
                     connection.commit();
                     return replay;
                 }
@@ -70,7 +76,7 @@ public final class CreateTenantService {
                 try {
                     tenantRepository.insert(connection, tenant);
                 } catch (SQLException failure) {
-                    if ("23000".equals(failure.getSQLState())) {
+                    if (isTenantIdentityDuplicateKey(failure)) {
                         throw new BusinessException(CommonErrors.TENANT_CREATE_REQUEST_CONFLICT);
                     }
                     throw failure;
@@ -91,6 +97,25 @@ public final class CreateTenantService {
                 throw failure;
             }
         }
+    }
+
+    static String requestHash(CreateTenantCommand command) {
+        Objects.requireNonNull(command, "command");
+        return sha256(command.canonicalForm());
+    }
+
+    static boolean isTenantIdentityDuplicateKey(SQLException failure) {
+        for (SQLException current = failure; current != null; current = current.getNextException()) {
+            if (current.getErrorCode() != 1062 || current.getMessage() == null) {
+                continue;
+            }
+            String message = current.getMessage();
+            if (message.contains("uk_tenant_code")
+                    || message.contains("uk_tenant_create_request_id")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String sha256(String value) {

@@ -111,6 +111,41 @@ class IntegrationTenantCreateIT {
     }
 
     @Test
+    void replayRejectsAnUnexpectedStoredResponseCode() throws Exception {
+        service.create(command("idem-308", "request-308", "tenant-308"));
+        try (Connection connection = dataSource.getConnection();
+                var statement = connection.prepareStatement(
+                        "UPDATE idempotency_record SET response_code=? WHERE idempotency_key=?")) {
+            statement.setString(1, "TENANT_CREATED");
+            statement.setString(2, "idem-308");
+            statement.executeUpdate();
+        }
+
+        assertThrows(SQLException.class,
+                () -> service.create(command("idem-308", "request-308", "tenant-308")));
+        assertEquals(1, count("tenant", "tenant_code='tenant-308'"));
+        assertEquals(1, count("mq_outbox", "event_type='tenant.provisioning.requested.v1'"));
+    }
+
+    @Test
+    void replayRejectsAStoredResultForAnotherRequestIdentity() throws Exception {
+        service.create(command("idem-309", "request-309", "tenant-309"));
+        try (Connection connection = dataSource.getConnection();
+                var statement = connection.prepareStatement(
+                        "UPDATE idempotency_record SET response_body=JSON_SET(response_body, "
+                                + "'$.tenantCreateRequestId', ?) WHERE idempotency_key=?")) {
+            statement.setString(1, "request-other");
+            statement.setString(2, "idem-309");
+            statement.executeUpdate();
+        }
+
+        assertThrows(SQLException.class,
+                () -> service.create(command("idem-309", "request-309", "tenant-309")));
+        assertEquals(1, count("tenant", "tenant_code='tenant-309'"));
+        assertEquals(1, count("mq_outbox", "event_type='tenant.provisioning.requested.v1'"));
+    }
+
+    @Test
     void sameKeyWithDifferentPayloadIsRejected() throws Exception {
         service.create(command("idem-301", "request-301", "tenant-301"));
 
