@@ -3,3 +3,13 @@ spring:
     name: alop-iam
 server:
   port: 48101
+alop:
+  messaging:
+    internal:
+      service-name: alop-iam
+  iam:
+    worker-id: ${ALOP_IAM_WORKER_ID}
+    provisioning:
+      exchange: alop.events
+      queue: alop-iam.tenant-provisioning
+      group: alop-iam.tenant-provisioning

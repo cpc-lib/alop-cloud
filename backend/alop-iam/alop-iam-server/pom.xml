@@ -12,6 +12,39 @@
   <artifactId>alop-iam-server</artifactId>
   <dependencies>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.company.alop</groupId>
+      <artifactId>alop-spring-boot-starter-mq</artifactId>
+      <version>${revision}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.company.alop</groupId>
+      <artifactId>alop-spring-boot-starter-inbox</artifactId>
+      <version>${revision}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.company.alop</groupId>
+      <artifactId>alop-spring-boot-starter-outbox</artifactId>
+      <version>${revision}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>com.company.alop</groupId>
       <artifactId>alop-iam-api</artifactId>
       <version>${revision}</version>
