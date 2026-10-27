@@ -24,5 +24,15 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.company.alop</groupId>
+      <artifactId>alop-spring-boot-starter-mq</artifactId>
+      <version>${revision}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.company.alop</groupId>
+      <artifactId>alop-spring-boot-starter-outbox</artifactId>
+      <version>${revision}</version>
+    </dependency>
   </dependencies>
 </project>

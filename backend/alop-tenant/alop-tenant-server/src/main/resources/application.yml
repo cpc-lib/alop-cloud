@@ -3,3 +3,7 @@ spring:
     name: alop-tenant
 server:
   port: 48100
+alop:
+  messaging:
+    internal:
+      service-name: alop-tenant
