@@ -101,9 +101,32 @@ class CreateTenantServiceTest {
                 () -> new CreateTenantResult(1L, "request-1", TenantStatus.ACTIVE, 0L));
         assertThrows(IllegalArgumentException.class,
                 () -> new CreateTenantResult(1L, "request-1", TenantStatus.CREATING, -1L));
+        assertThrows(IllegalArgumentException.class,
+                () -> new CreateTenantResult(1L, "request-1", TenantStatus.CREATING, 1L));
         assertThrows(IllegalArgumentException.class, () -> CreateTenantResult.fromResponseBody(
                 "{\"tenantId\":0,\"tenantCreateRequestId\":\"request-1\","
                         + "\"status\":\"CREATING\",\"version\":0}"));
+        assertThrows(IllegalArgumentException.class, () -> CreateTenantResult.fromResponseBody(
+                "{\"tenantCreateRequestId\":\"request-1\",\"status\":\"CREATING\",\"version\":0}"));
+        assertThrows(IllegalArgumentException.class, () -> CreateTenantResult.fromResponseBody(
+                "{\"tenantId\":1,\"status\":\"CREATING\",\"version\":0}"));
+        assertThrows(IllegalArgumentException.class, () -> CreateTenantResult.fromResponseBody(
+                "{\"tenantId\":1,\"tenantCreateRequestId\":\"request-1\",\"version\":0}"));
+        assertThrows(IllegalArgumentException.class, () -> CreateTenantResult.fromResponseBody(
+                "{\"tenantId\":1,\"tenantCreateRequestId\":\"request-1\","
+                        + "\"status\":\"CREATING\"}"));
+        assertThrows(IllegalArgumentException.class, () -> CreateTenantResult.fromResponseBody(
+                "{\"tenantId\":\"1\",\"tenantCreateRequestId\":\"request-1\","
+                        + "\"status\":\"CREATING\",\"version\":0}"));
+        assertThrows(IllegalArgumentException.class, () -> CreateTenantResult.fromResponseBody(
+                "{\"tenantId\":1,\"tenantCreateRequestId\":1,"
+                        + "\"status\":\"CREATING\",\"version\":0}"));
+        assertThrows(IllegalArgumentException.class, () -> CreateTenantResult.fromResponseBody(
+                "{\"tenantId\":1,\"tenantCreateRequestId\":\"request-1\","
+                        + "\"status\":1,\"version\":0}"));
+        assertThrows(IllegalArgumentException.class, () -> CreateTenantResult.fromResponseBody(
+                "{\"tenantId\":1,\"tenantCreateRequestId\":\"request-1\","
+                        + "\"status\":\"CREATING\",\"version\":\"0\"}"));
     }
 
     @Test

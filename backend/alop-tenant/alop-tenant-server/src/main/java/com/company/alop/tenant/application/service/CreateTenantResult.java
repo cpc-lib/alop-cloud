@@ -1,6 +1,7 @@
 package com.company.alop.tenant.application.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.company.alop.tenant.domain.tenant.TenantDefaults;
 import com.company.alop.tenant.domain.tenant.TenantStatus;
@@ -17,8 +18,8 @@ public record CreateTenantResult(long tenantId, String tenantCreateRequestId,
         if (status != TenantStatus.CREATING) {
             throw new IllegalArgumentException("CreateTenant result status must be CREATING");
         }
-        if (version < 0) {
-            throw new IllegalArgumentException("Tenant version must not be negative");
+        if (version != 0) {
+            throw new IllegalArgumentException("CreateTenant result version must be 0");
         }
     }
 
@@ -35,13 +36,38 @@ public record CreateTenantResult(long tenantId, String tenantCreateRequestId,
             throw new IllegalArgumentException("Stored CreateTenant response is invalid");
         }
         try {
-            CreateTenantResult result = JSON.readValue(body, CreateTenantResult.class);
-            if (result == null) {
+            JsonNode root = JSON.readTree(body);
+            if (root == null || !root.isObject()) {
                 throw new IllegalArgumentException("Stored CreateTenant response is invalid");
             }
-            return result;
+            JsonNode tenantId = required(root, "tenantId");
+            JsonNode requestId = required(root, "tenantCreateRequestId");
+            JsonNode status = required(root, "status");
+            JsonNode version = required(root, "version");
+            if (!tenantId.isIntegralNumber() || !tenantId.canConvertToLong() || tenantId.longValue() <= 0) {
+                throw new IllegalArgumentException("Stored CreateTenant tenantId is invalid");
+            }
+            if (!requestId.isTextual()) {
+                throw new IllegalArgumentException("Stored CreateTenant request ID is invalid");
+            }
+            if (!status.isTextual() || !TenantStatus.CREATING.name().equals(status.textValue())) {
+                throw new IllegalArgumentException("Stored CreateTenant status is invalid");
+            }
+            if (!version.isIntegralNumber() || !version.canConvertToLong() || version.longValue() != 0) {
+                throw new IllegalArgumentException("Stored CreateTenant version is invalid");
+            }
+            return new CreateTenantResult(tenantId.longValue(), requestId.textValue(),
+                    TenantStatus.CREATING, version.longValue());
         } catch (JsonProcessingException | IllegalArgumentException failure) {
             throw new IllegalArgumentException("Stored CreateTenant response is invalid", failure);
         }
+    }
+
+    private static JsonNode required(JsonNode root, String field) {
+        JsonNode value = root.get(field);
+        if (value == null || value.isNull()) {
+            throw new IllegalArgumentException("Stored CreateTenant field is missing: " + field);
+        }
+        return value;
     }
 }

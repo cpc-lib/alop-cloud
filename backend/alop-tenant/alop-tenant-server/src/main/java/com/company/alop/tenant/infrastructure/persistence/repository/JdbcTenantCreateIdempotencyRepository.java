@@ -105,7 +105,8 @@ public final class JdbcTenantCreateIdempotencyRepository
 
     static boolean isDuplicateKey(SQLException failure) {
         for (SQLException current = failure; current != null; current = current.getNextException()) {
-            if (current.getErrorCode() == 1062) {
+            if (current.getErrorCode() == 1062 && current.getMessage() != null
+                    && current.getMessage().contains("uk_idem")) {
                 return true;
             }
         }

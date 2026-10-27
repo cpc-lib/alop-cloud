@@ -111,6 +111,47 @@ class IntegrationTenantCreateIT {
     }
 
     @Test
+    void replayKeepsReturningTheAcceptedBodyAfterTenantSagaAdvancesStatus() throws Exception {
+        CreateTenantResult first = service.create(command("idem-311", "request-311", "tenant-311"));
+        try (Connection connection = dataSource.getConnection();
+                var statement = connection.prepareStatement(
+                        "UPDATE tenant SET status='ACTIVE', version=1 WHERE id=?")) {
+            statement.setLong(1, first.tenantId());
+            statement.executeUpdate();
+        }
+
+        assertEquals(first, service.create(command("idem-311", "request-311", "tenant-311")));
+    }
+
+    @Test
+    void replayRejectsWhenStoredTenantIsMissing() throws Exception {
+        CreateTenantResult first = service.create(command("idem-312", "request-312", "tenant-312"));
+        try (Connection connection = dataSource.getConnection();
+                var statement = connection.prepareStatement("DELETE FROM tenant WHERE id=?")) {
+            statement.setLong(1, first.tenantId());
+            statement.executeUpdate();
+        }
+
+        assertThrows(SQLException.class,
+                () -> service.create(command("idem-312", "request-312", "tenant-312")));
+    }
+
+    @Test
+    void replayRejectsWhenStoredTenantRequestIdentityDiffers() throws Exception {
+        CreateTenantResult first = service.create(command("idem-313", "request-313", "tenant-313"));
+        try (Connection connection = dataSource.getConnection();
+                var statement = connection.prepareStatement(
+                        "UPDATE tenant SET tenant_create_request_id=? WHERE id=?")) {
+            statement.setString(1, "request-other");
+            statement.setLong(2, first.tenantId());
+            statement.executeUpdate();
+        }
+
+        assertThrows(SQLException.class,
+                () -> service.create(command("idem-313", "request-313", "tenant-313")));
+    }
+
+    @Test
     void replayRejectsAnUnexpectedStoredResponseCode() throws Exception {
         service.create(command("idem-308", "request-308", "tenant-308"));
         try (Connection connection = dataSource.getConnection();
@@ -247,6 +288,26 @@ class IntegrationTenantCreateIT {
         assertEquals(0, count("mq_outbox", "event_type='tenant.provisioning.requested.v1'"));
     }
 
+    @Test
+    void idempotencyAdapterOnlyConvertsUkIdemCollisionToReplay() throws Exception {
+        service.create(command("idem-314", "request-314", "tenant-314"));
+        long existingId = idempotencyId("idem-314");
+        JdbcTenantCreateIdempotencyRepository repository = new JdbcTenantCreateIdempotencyRepository();
+
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(false);
+            assertThrows(SQLException.class, () -> repository.insertPending(connection, existingId,
+                    "idem-primary", "hash-primary"));
+            connection.rollback();
+        }
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(false);
+            assertFalse(repository.insertPending(connection, existingId + 100000L,
+                    "idem-314", "hash-other"));
+            connection.rollback();
+        }
+    }
+
     private static CreateTenantCommand command(String key, String requestId, String code) {
         return command(key, requestId, code, "standard");
     }
@@ -285,6 +346,20 @@ class IntegrationTenantCreateIT {
              var result = statement.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE " + predicate)) {
             result.next();
             return result.getInt(1);
+        }
+    }
+
+    private static long idempotencyId(String idempotencyKey) throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+                var statement = connection.prepareStatement(
+                        "SELECT id FROM idempotency_record WHERE idempotency_key=?")) {
+            statement.setString(1, idempotencyKey);
+            try (var result = statement.executeQuery()) {
+                if (!result.next()) {
+                    throw new SQLException("Idempotency record was not persisted");
+                }
+                return result.getLong(1);
+            }
         }
     }
 }

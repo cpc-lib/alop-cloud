@@ -64,6 +64,11 @@ public final class CreateTenantService {
                     if (!command.tenantCreateRequestId().equals(replay.tenantCreateRequestId())) {
                         throw new SQLException("CreateTenant replay request ID does not match command");
                     }
+                    Tenant replayTenant = tenantRepository.findByIdForUpdate(connection, replay.tenantId())
+                            .orElseThrow(() -> new SQLException("CreateTenant replay Tenant does not exist"));
+                    if (!command.tenantCreateRequestId().equals(replayTenant.tenantCreateRequestId())) {
+                        throw new SQLException("CreateTenant replay Tenant request ID does not match command");
+                    }
                     connection.commit();
                     return replay;
                 }

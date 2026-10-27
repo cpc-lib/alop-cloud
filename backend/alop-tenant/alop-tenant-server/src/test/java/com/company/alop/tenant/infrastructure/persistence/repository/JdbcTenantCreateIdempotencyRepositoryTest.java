@@ -8,9 +8,13 @@ import org.junit.jupiter.api.Test;
 
 class JdbcTenantCreateIdempotencyRepositoryTest {
     @Test
-    void onlyMysqlDuplicateKeyErrorCodeIsRetryable() {
+    void onlyUkIdemMysqlDuplicateKeyIsRetryable() {
         assertTrue(JdbcTenantCreateIdempotencyRepository.isDuplicateKey(
-                new SQLException("Duplicate entry", "23000", 1062)));
+                new SQLException("Duplicate entry for key 'uk_idem'", "23000", 1062)));
+        assertFalse(JdbcTenantCreateIdempotencyRepository.isDuplicateKey(
+                new SQLException("Duplicate entry for key 'PRIMARY'", "23000", 1062)));
+        assertFalse(JdbcTenantCreateIdempotencyRepository.isDuplicateKey(
+                new SQLException("Duplicate entry for key 'uk_other'", "23000", 1062)));
         assertFalse(JdbcTenantCreateIdempotencyRepository.isDuplicateKey(
                 new SQLException("Integrity error", "23000", 1063)));
         assertFalse(JdbcTenantCreateIdempotencyRepository.isDuplicateKey(
