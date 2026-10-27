@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JdbcInboxDeduplicatorTest {
-    private static final InternalEventContext INTERNAL = new InternalEventContext("alop-iam");
+    private static final InternalEventContext INTERNAL = context("alop-iam");
     private final JdbcInboxDeduplicator inbox = new JdbcInboxDeduplicator(new SnowflakeIdGenerator(1));
 
     @Test
@@ -67,6 +68,19 @@ class JdbcInboxDeduplicatorTest {
     }
 
     @Test
+    void processedDuplicateDoesNotRunInternalEffectAgain() throws Exception {
+        List<String> calls = new ArrayList<>();
+        boolean[] effectApplied = {false};
+
+        boolean applied = inbox.consume(duplicateProcessedConnection(calls), INTERNAL, 42,
+                "group", UUID.randomUUID().toString(), null, db -> effectApplied[0] = true);
+
+        assertFalse(applied);
+        assertFalse(effectApplied[0]);
+        assertEquals(List.of("savepoint", "duplicate", "lookup", "release"), calls);
+    }
+
+    @Test
     void ordinaryConsumeStillRejectsMismatchedTenant() {
         TenantContext user = new TenantContext(7, 70, 700);
 
@@ -103,6 +117,59 @@ class JdbcInboxDeduplicatorTest {
                         default -> { return defaultValue(method.getReturnType()); }
                     }
                 });
+    }
+
+    private static Connection duplicateProcessedConnection(List<String> calls) {
+        Savepoint savepoint = (Savepoint) Proxy.newProxyInstance(
+                JdbcInboxDeduplicatorTest.class.getClassLoader(), new Class<?>[]{Savepoint.class},
+                (proxy, method, args) -> defaultValue(method.getReturnType()));
+        ResultSet result = (ResultSet) Proxy.newProxyInstance(
+                JdbcInboxDeduplicatorTest.class.getClassLoader(), new Class<?>[]{ResultSet.class},
+                (proxy, method, args) -> {
+                    if (method.getName().equals("next")) return true;
+                    if (method.getName().equals("getString")) return "PROCESSED";
+                    return defaultValue(method.getReturnType());
+                });
+        PreparedStatement insert = (PreparedStatement) Proxy.newProxyInstance(
+                JdbcInboxDeduplicatorTest.class.getClassLoader(), new Class<?>[]{PreparedStatement.class},
+                (proxy, method, args) -> {
+                    if (method.getName().equals("executeUpdate")) {
+                        calls.add("duplicate");
+                        throw new SQLException("duplicate", "23000", 1062);
+                    }
+                    return defaultValue(method.getReturnType());
+                });
+        PreparedStatement lookup = (PreparedStatement) Proxy.newProxyInstance(
+                JdbcInboxDeduplicatorTest.class.getClassLoader(), new Class<?>[]{PreparedStatement.class},
+                (proxy, method, args) -> {
+                    if (method.getName().equals("executeQuery")) {
+                        calls.add("lookup");
+                        return result;
+                    }
+                    return defaultValue(method.getReturnType());
+                });
+        int[] statementNumber = {0};
+        return (Connection) Proxy.newProxyInstance(
+                JdbcInboxDeduplicatorTest.class.getClassLoader(), new Class<?>[]{Connection.class},
+                (proxy, method, args) -> {
+                    switch (method.getName()) {
+                        case "getAutoCommit" -> { return false; }
+                        case "setSavepoint" -> { calls.add("savepoint"); return savepoint; }
+                        case "prepareStatement" -> { return statementNumber[0]++ == 0 ? insert : lookup; }
+                        case "releaseSavepoint" -> { calls.add("release"); return null; }
+                        default -> { return defaultValue(method.getReturnType()); }
+                    }
+                });
+    }
+
+    private static InternalEventContext context(String serviceName) {
+        try {
+            var constructor = InternalEventContext.Provider.class.getDeclaredConstructor(String.class);
+            constructor.setAccessible(true);
+            return ((InternalEventContext.Provider) constructor.newInstance(serviceName)).context();
+        } catch (ReflectiveOperationException failure) {
+            throw new AssertionError("Test provider setup failed", failure);
+        }
     }
 
     private static Object defaultValue(Class<?> type) {

@@ -61,7 +61,7 @@ public final class RabbitInboxDeliveryHandler {
             verified.requireTenant(envelope.tenantId());
             inbox.consume(db, verified, envelope.tenantId(), group, envelope.eventId(),
                     envelope.aggregateVersion(), connection -> effect.apply(connection, envelope));
-        });
+        }, false);
     }
 
     /**
@@ -77,11 +77,11 @@ public final class RabbitInboxDeliveryHandler {
                     "InternalEventResolver returned null");
             inbox.consume(db, trusted, envelope.tenantId(), group, envelope.eventId(),
                     envelope.aggregateVersion(), connection -> effect.apply(connection, envelope));
-        });
+        }, true);
     }
 
     private boolean handleDelivery(Channel channel, Delivery delivery,
-            TransactionEffect transactionEffect) throws IOException {
+            TransactionEffect transactionEffect, boolean requeueOnFailure) throws IOException {
         Objects.requireNonNull(channel, "channel");
         Objects.requireNonNull(delivery, "delivery");
         Objects.requireNonNull(transactionEffect, "transactionEffect");
@@ -100,11 +100,11 @@ public final class RabbitInboxDeliveryHandler {
                 db.commit();
             } catch (SQLException | RuntimeException error) {
                 db.rollback();
-                channel.basicNack(tag, false, false);
+                channel.basicNack(tag, false, requeueOnFailure);
                 return false;
             }
         } catch (SQLException failure) {
-            channel.basicNack(tag, false, false);
+            channel.basicNack(tag, false, requeueOnFailure);
             return false;
         }
         channel.basicAck(tag, false);
